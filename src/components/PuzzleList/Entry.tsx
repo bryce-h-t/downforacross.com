@@ -1,3 +1,9 @@
+// Entry Component Dependencies:
+// - React ContextProvider: Required for React context.
+// - Router: Uses 'Link' from 'react-router-dom', must be rendered within a Router context like <BrowserRouter> or <HashRouter>.
+// - react-flexview: Provides 'Flex' for layout, must be installed and available.
+// - react-icons/md and react-icons/gi: Icon libraries used within the component, must be installed and available.
+
 import React, {Component} from 'react';
 import _ from 'lodash';
 import Flex from 'react-flexview';
