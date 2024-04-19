@@ -1,5 +1,6 @@
 import React from 'react';
 import {StoryFn as Story, Meta} from '@storybook/react';
+import {BrowserRouter as Router} from 'react-router-dom';
 import Entry, {EntryProps} from './Entry';
 
 export default {
@@ -7,7 +8,11 @@ export default {
   component: Entry,
 } as Meta;
 
-const Template: Story<EntryProps> = (args) => <Entry {...args} />;
+const Template: Story<EntryProps> = (args) => (
+  <Router>
+    <Entry {...args} />
+  </Router>
+);
 
 export const Default = Template.bind({});
 Default.args = {
