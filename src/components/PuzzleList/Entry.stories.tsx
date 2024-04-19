@@ -1,13 +1,14 @@
 import React from 'react';
-import { BrowserRouter } from 'react-router-dom';
+import {BrowserRouter} from 'react-router-dom';
 import Entry from './Entry';
+import {EntryProps} from './Entry'; // Assuming EntryProps is the correct type
 
 export default {
   title: 'PuzzleList/Entry',
   component: Entry,
 };
 
-const Template = (args) => (
+const Template = (args: EntryProps) => (
   <BrowserRouter>
     <Entry {...args} />
   </BrowserRouter>
@@ -39,6 +40,10 @@ export const Unsolved = Template.bind({});
 Unsolved.args = {
   ...Default.args,
   status: undefined,
+  stats: {
+    numSolves: 0, // Assuming unsolved puzzles should show 0 solves
+    solves: [],
+  },
 };
 
 export const FencingEnabled = Template.bind({});
