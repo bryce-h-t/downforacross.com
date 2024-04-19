@@ -1,30 +1,29 @@
 import React from 'react';
-import {StoryFn as Story, Meta} from '@storybook/react';
-import {BrowserRouter as Router} from 'react-router-dom';
-import Entry, {EntryProps} from './Entry';
+import { BrowserRouter } from 'react-router-dom';
+import Entry from './Entry';
 
 export default {
   title: 'PuzzleList/Entry',
   component: Entry,
-} as Meta;
+};
 
-const Template: Story<EntryProps> = (args) => (
-  <Router>
+const Template = (args) => (
+  <BrowserRouter>
     <Entry {...args} />
-  </Router>
+  </BrowserRouter>
 );
 
 export const Default = Template.bind({});
 Default.args = {
   info: {
-    type: 'Daily Puzzle',
+    type: 'puzzle',
   },
   title: 'Sample Puzzle',
   author: 'Devin',
-  pid: 'puzzle-id',
+  pid: '12345',
   status: 'started',
   stats: {
-    numSolves: 5,
+    numSolves: 150,
     solves: [],
   },
   fencing: false,
@@ -36,10 +35,25 @@ Solved.args = {
   status: 'solved',
 };
 
-export const Fencing = Template.bind({});
-Fencing.args = {
+export const Unsolved = Template.bind({});
+Unsolved.args = {
+  ...Default.args,
+  status: undefined,
+};
+
+export const FencingEnabled = Template.bind({});
+FencingEnabled.args = {
   ...Default.args,
   fencing: true,
+};
+
+export const HighNumSolves = Template.bind({});
+HighNumSolves.args = {
+  ...Default.args,
+  stats: {
+    numSolves: 1000,
+    solves: [],
+  },
 };
 
 export const NoSolves = Template.bind({});
@@ -51,70 +65,22 @@ NoSolves.args = {
   },
 };
 
-export const WithSolves = Template.bind({});
-WithSolves.args = {
-  ...Default.args,
-  stats: {
-    numSolves: 10,
-    solves: new Array(10).fill({}),
-  },
-};
-
-export const MiniPuzzle = Template.bind({});
-MiniPuzzle.args = {
+export const DifferentType = Template.bind({});
+DifferentType.args = {
   ...Default.args,
   info: {
-    type: 'Mini Puzzle',
+    type: 'challenge',
   },
 };
 
-export const StandardPuzzle = Template.bind({});
-StandardPuzzle.args = {
+export const CustomTitle = Template.bind({});
+CustomTitle.args = {
   ...Default.args,
-  info: {
-    type: 'Standard Puzzle',
-  },
+  title: 'Custom Puzzle Challenge',
 };
 
-export const UndefinedStatus = Template.bind({});
-UndefinedStatus.args = {
+export const CustomAuthor = Template.bind({});
+CustomAuthor.args = {
   ...Default.args,
-  status: undefined,
-};
-
-export const LargeNumberOfSolves = Template.bind({});
-LargeNumberOfSolves.args = {
-  ...Default.args,
-  stats: {
-    numSolves: 100,
-    solves: new Array(100).fill({}),
-  },
-};
-
-export const CustomDisplayName = Template.bind({});
-CustomDisplayName.args = {
-  ...Default.args,
-  author: 'Custom Author',
-  info: {
-    type: 'Custom Puzzle Type',
-  },
-};
-
-export const LongTitle = Template.bind({});
-LongTitle.args = {
-  ...Default.args,
-  title:
-    'This is a very long puzzle title that should be truncated with ellipsis when displayed in the Entry component',
-};
-
-export const NoAuthor = Template.bind({});
-NoAuthor.args = {
-  ...Default.args,
-  author: '',
-};
-
-export const NoTitle = Template.bind({});
-NoTitle.args = {
-  ...Default.args,
-  title: '',
+  author: 'Engineer Devin',
 };
