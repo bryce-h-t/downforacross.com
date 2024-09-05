@@ -412,10 +412,25 @@ export default class MobileGridControls extends GridControls {
         className="mobile-grid-controls--grid-content"
         ref={(e: HTMLDivElement | null) => {
           if (!e) return;
-          e.addEventListener('touchstart', this.handleTouchStart as EventListener, {passive: false});
-          e.addEventListener('touchmove', this.handleTouchMove as EventListener, {passive: false});
-          e.addEventListener('touchend', this.handleTouchEnd as EventListener, {passive: false});
-          // e.addEventListener('mouseup', this.handleTouchEnd as EventListener, {passive: false});
+          e.addEventListener(
+            'touchstart',
+            (event: TouchEvent) =>
+              this.handleTouchStart((event as unknown) as React.TouchEvent<HTMLDivElement>),
+            {passive: false}
+          );
+          e.addEventListener(
+            'touchmove',
+            (event: TouchEvent) =>
+              this.handleTouchMove((event as unknown) as React.TouchEvent<HTMLDivElement>),
+            {passive: false}
+          );
+          e.addEventListener(
+            'touchend',
+            (event: TouchEvent) =>
+              this.handleTouchEnd((event as unknown) as React.TouchEvent<HTMLDivElement>),
+            {passive: false}
+          );
+          // e.addEventListener('mouseup', (event: MouseEvent) => this.handleTouchEnd(event as unknown as React.TouchEvent<HTMLDivElement>), {passive: false});
         }}
       >
         <div
@@ -435,9 +450,9 @@ export default class MobileGridControls extends GridControls {
     const {x, y} = this.clueBarGesture;
 
     const {x: px = 0, y: py = 0} = this.previousGesture || {};
-    const X = px || x;
-    const Y = py || y;
-    const style = {
+    const X = px || x || 0;
+    const Y = py || y || 0;
+    const style: React.CSSProperties = {
       flexDirection: X > 0 ? 'row-reverse' : X < 0 ? 'row' : Y >= 0 ? 'column-reverse' : 'column',
       transform: px || py ? `translate(${px * 50}%, ${py * 50}%)` : `translate(${x || 0}px, ${y || 0}px)`,
       left: X > 0 ? '-100%' : 0,
@@ -447,7 +462,10 @@ export default class MobileGridControls extends GridControls {
     return (
       <Flex className="mobile-grid-controls--clue-bar-container">
         <div
-          ref={(e) => e && e.addEventListener('touchend', this.handleLeftArrowTouchEnd, {passive: false})}
+          ref={(e: HTMLDivElement | null) =>
+            e &&
+            e.addEventListener('touchend', this.handleLeftArrowTouchEnd as EventListener, {passive: false})
+          }
           style={{display: 'flex'}}
         >
           <MdKeyboardArrowLeft className="mobile-grid-controls--intra-clue left" onClick={this.keepFocus} />
@@ -459,11 +477,11 @@ export default class MobileGridControls extends GridControls {
             alignItems: 'center',
           }}
           className={classnames('mobile-grid-controls--clue-bar', {touching: this.state.touchingClueBar})}
-          ref={(e) => {
+          ref={(e: HTMLDivElement | null) => {
             if (!e) return;
-            e.addEventListener('touchstart', this.handleClueBarTouchStart, {passive: false});
-            e.addEventListener('touchend', this.handleClueBarTouchEnd, {passive: false});
-            e.addEventListener('touchmove', this.handleClueBarTouchMove, {passive: false});
+            e.addEventListener('touchstart', this.handleClueBarTouchStart as EventListener, {passive: false});
+            e.addEventListener('touchend', this.handleClueBarTouchEnd as EventListener, {passive: false});
+            e.addEventListener('touchmove', this.handleClueBarTouchMove as EventListener, {passive: false});
           }}
           onClick={this.keepFocus}
         >
@@ -479,7 +497,10 @@ export default class MobileGridControls extends GridControls {
           </div>
         </div>
         <div
-          ref={(e) => e && e.addEventListener('touchend', this.handleRightArrowTouchEnd, {passive: false})}
+          ref={(e: HTMLDivElement | null) =>
+            e &&
+            e.addEventListener('touchend', this.handleRightArrowTouchEnd as EventListener, {passive: false})
+          }
           style={{display: 'flex'}}
         >
           <MdKeyboardArrowRight className="mobile-grid-controls--intra-clue left" onClick={this.keepFocus} />
