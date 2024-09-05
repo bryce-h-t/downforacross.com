@@ -1,7 +1,7 @@
 /* eslint react/no-string-refs: "warn", no-plusplus: "off" */
 import './css/gridControls.css';
 
-import React, {Component} from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 
 import GridObject from '../../lib/wrappers/GridWrapper';
 
@@ -12,111 +12,107 @@ function safe_while(condition, step, cap = 500) {
   }
 }
 
-export default class GridControls extends Component {
-  constructor() {
-    super();
-    this.inputRef = React.createRef();
-  }
+export default function GridControls(props) {
+  const inputRef = useRef(null);
 
-  actions = {
-    left: this.setDirectionWithCallback('across', this.moveSelectedBy(0, -1).bind(this)).bind(this),
-    up: this.setDirectionWithCallback('down', this.moveSelectedBy(-1, 0).bind(this)).bind(this),
-    down: this.setDirectionWithCallback('down', this.moveSelectedBy(1, 0).bind(this)).bind(this),
-    right: this.setDirectionWithCallback('across', this.moveSelectedBy(0, 1).bind(this)).bind(this),
-    forward: this.moveSelectedUsingDirection(1).bind(this),
-    backward: this.moveSelectedUsingDirection(-1).bind(this),
-    home: this.moveToEdge(true).bind(this),
-    end: this.moveToEdge(false).bind(this),
-    backspace: this.backspace.bind(this),
-    delete: this.delete.bind(this),
-    tab: this.selectNextClue.bind(this),
-    space: this.flipDirection.bind(this),
+
+  const grid = new GridObject(props.grid);
+
+  const getSelectedClueNumber = () => {
+    return grid.getParent(props.selected.r, props.selected.c, props.direction);
   };
 
-  get grid() {
-    return new GridObject(this.props.grid);
-  }
+  useEffect(() => {
+    focus();
+  }, []);
 
-  getSelectedClueNumber() {
-    return this.grid.getParent(this.props.selected.r, this.props.selected.c, this.props.direction);
-  }
-
-  componentDidMount() {
-    this.focus();
-  }
-
-  selectNextClue(backwards, parallel = false) {
-    const {direction, clueNumber} = this.grid.getNextClue(
-      this.getSelectedClueNumber(),
-      this.props.direction,
-      this.props.clues,
+  const selectNextClue = useCallback((backwards, parallel = false) => {
+    const {direction, clueNumber} = grid.getNextClue(
+      getSelectedClueNumber(),
+      props.direction,
+      props.clues,
       backwards,
       parallel
     );
 
-    this.selectClue(direction, clueNumber);
-  }
+    selectClue(direction, clueNumber);
+  }, [props.direction, props.clues, props.selected]);
 
-  selectClue(direction, number) {
-    this.setDirection(direction);
-    const clueRoot = this.grid.getCellByNumber(number);
-    const firstEmptyCell = this.grid.getNextEmptyCell(clueRoot.r, clueRoot.c, direction);
-    this.setSelected(firstEmptyCell || clueRoot);
-  }
+  const selectClue = useCallback((direction, number) => {
+    setDirection(direction);
+    const clueRoot = grid.getCellByNumber(number);
+    const firstEmptyCell = grid.getNextEmptyCell(clueRoot.r, clueRoot.c, direction);
+    setSelected(firstEmptyCell || clueRoot);
+  }, []);
 
-  isSelectable(r, c) {
-    return this.props.editMode || this.grid.isWhite(r, c);
-  }
+  const isSelectable = useCallback((r, c) => {
+    return props.editMode || grid.isWhite(r, c);
+  }, [props.editMode]);
 
-  flipDirection() {
-    if (this.props.direction === 'across') {
-      if (this.canSetDirection('down')) {
-        this.setDirection('down');
+  const flipDirection = useCallback(() => {
+    if (props.direction === 'across') {
+      if (canSetDirection('down')) {
+        setDirection('down');
       }
-    } else if (this.canSetDirection('across')) {
-      this.setDirection('across');
+    } else if (canSetDirection('across')) {
+      setDirection('across');
     }
-  }
+  }, [props.direction, canSetDirection, setDirection]);
 
-  moveSelectedBy(dr, dc) {
+  const moveSelectedBy = useCallback((dr, dc) => {
     return () => {
-      const {selected} = this.props;
+      const {selected} = props;
       let {r, c} = selected;
       const step = () => {
         r += dr;
         c += dc;
       };
       step();
-      safe_while(() => this.grid.isInBounds(r, c) && !this.isSelectable(r, c), step);
-      if (this.grid.isInBounds(r, c)) {
-        this.setSelected({r, c});
+      safe_while(() => grid.isInBounds(r, c) && !isSelectable(r, c), step);
+      if (grid.isInBounds(r, c)) {
+        setSelected({r, c});
       }
     };
-  }
+  }, [props.selected, isSelectable, setSelected]);
 
-  moveSelectedUsingDirection(d) {
+  const moveSelectedUsingDirection = useCallback((d) => {
     return () => {
-      const [dr, dc] = this.props.direction === 'down' ? [0, d] : [d, 0];
-      return this.moveSelectedBy(dr, dc)();
+      const [dr, dc] = props.direction === 'down' ? [0, d] : [d, 0];
+      return moveSelectedBy(dr, dc)();
     };
-  }
+  }, [props.direction, moveSelectedBy]);
 
-  moveToEdge(start) {
+  const moveToEdge = useCallback((start) => {
     return () => {
-      const {selected, direction} = this.props;
+      const {selected, direction} = props;
       let {r, c} = selected;
-      ({r, c} = this.grid.getEdge(r, c, direction, start));
-      if (this.grid.isInBounds(r, c)) {
-        this.setSelected({r, c});
+      ({r, c} = grid.getEdge(r, c, direction, start));
+      if (grid.isInBounds(r, c)) {
+        setSelected({r, c});
       }
     };
-  }
+  }, [props, setSelected]);
 
-  setDirectionWithCallback(direction, cbk) {
+  const actions = useMemo(() => ({
+    left: setDirectionWithCallback('across', moveSelectedBy(0, -1)),
+    up: setDirectionWithCallback('down', moveSelectedBy(-1, 0)),
+    down: setDirectionWithCallback('down', moveSelectedBy(1, 0)),
+    right: setDirectionWithCallback('across', moveSelectedBy(0, 1)),
+    forward: moveSelectedUsingDirection(1),
+    backward: moveSelectedUsingDirection(-1),
+    home: moveToEdge(true),
+    end: moveToEdge(false),
+    backspace: backspace,
+    delete: deleteCell,
+    tab: selectNextClue,
+    space: flipDirection,
+  }), [setDirectionWithCallback, moveSelectedBy, moveSelectedUsingDirection, moveToEdge, backspace, deleteCell, selectNextClue, flipDirection]);
+
+  const setDirectionWithCallback = useCallback((direction, cbk) => {
     return () => {
-      if (this.props.direction !== direction) {
-        if (this.canSetDirection(direction)) {
-          this.setDirection(direction);
+      if (props.direction !== direction) {
+        if (canSetDirection(direction)) {
+          setDirection(direction);
         } else {
           cbk();
         }
@@ -124,20 +120,20 @@ export default class GridControls extends Component {
         cbk();
       }
     };
-  }
+  }, [props.direction, canSetDirection, setDirection]);
 
   // factored out handleAction for mobileGridControls
-  handleAction(action, shiftKey) {
-    if (!(action in this.actions)) {
+  const handleAction = useCallback((action, shiftKey) => {
+    if (!(action in actions)) {
       console.error('illegal action', action);
       return; // weird!
     }
-    this.actions[action](shiftKey);
-  }
+    actions[action](shiftKey);
+  }, [actions]);
 
-  handleAltKey(key, shiftKey) {
+  const handleAltKey = useCallback((key, shiftKey) => {
     key = key.toLowerCase();
-    const altAction = shiftKey ? this.props.onReveal : this.props.onCheck;
+    const altAction = shiftKey ? props.onReveal : props.onCheck;
     if (key === 's') {
       altAction('square');
     }
@@ -147,16 +143,16 @@ export default class GridControls extends Component {
     if (key === 'p') {
       altAction('puzzle');
     }
-  }
+  }, [props.onReveal, props.onCheck]);
 
-  validLetter(letter) {
+  const validLetter = useCallback((letter) => {
     const VALID_SYMBOLS = '!@#$%^&*()-+=`~/?\\'; // special theme puzzles have these sometimes;
     if (VALID_SYMBOLS.indexOf(letter) !== -1) return true;
     return letter.match(/^[A-Z0-9]$/);
-  }
+  }, []);
 
   // takes in key, a string
-  _handleKeyDown = (key, shiftKey, altKey) => {
+  const _handleKeyDown = useCallback((key, shiftKey, altKey) => {
     const actionKeys = {
       ArrowLeft: 'left',
       ArrowUp: 'up',
@@ -174,14 +170,14 @@ export default class GridControls extends Component {
     };
 
     if (shiftKey) {
-      const isAcross = this.props.direction === 'across';
+      const isAcross = props.direction === 'across';
       actionKeys[isAcross ? 'ArrowUp' : 'ArrowLeft'] = 'backward';
       actionKeys[isAcross ? 'ArrowDown' : 'ArrowRight'] = 'forward';
     }
 
-    const {onPressEnter, onPressPeriod, onPressEscape} = this.props;
+    const {onPressEnter, onPressPeriod, onPressEscape} = props;
     if (key in actionKeys) {
-      this.handleAction(actionKeys[key], shiftKey);
+      handleAction(actionKeys[key], shiftKey);
       return true;
     }
     if (key === '.') {
@@ -193,21 +189,21 @@ export default class GridControls extends Component {
       return true;
     }
     if (altKey) {
-      this.handleAltKey(key, shiftKey);
+      handleAltKey(key, shiftKey);
       return true;
     }
     if (key === 'Escape') {
       onPressEscape && onPressEscape();
-    } else if (!this.props.frozen) {
+    } else if (!props.frozen) {
       const letter = key.toUpperCase();
-      if (this.validLetter(letter)) {
-        this.typeLetter(letter, shiftKey);
+      if (validLetter(letter)) {
+        typeLetter(letter, shiftKey);
         return true;
       }
     }
-  };
+  }, [props, handleAction, handleAltKey, validLetter, typeLetter]);
 
-  _handleKeyDownVim = (key, shiftKey, altKey) => {
+  const _handleKeyDownVim = useCallback((key, shiftKey, altKey) => {
     const actionKeys = {
       ArrowLeft: 'left',
       ArrowUp: 'up',
@@ -234,26 +230,26 @@ export default class GridControls extends Component {
       $: 'end',
     };
 
-    const {onVimNormal, onVimInsert, vimInsert, onPressEnter, onPressPeriod} = this.props;
+    const {onVimNormal, onVimInsert, vimInsert, onPressEnter, onPressPeriod} = props;
     if (key in actionKeys) {
-      this.handleAction(actionKeys[key], shiftKey);
+      handleAction(actionKeys[key], shiftKey);
       return true;
     }
     if (altKey) {
-      this.handleAltKey(key, shiftKey);
+      handleAltKey(key, shiftKey);
       return true;
     }
     if (!vimInsert) {
       if (key in normalModeActionKeys) {
-        this.handleAction(normalModeActionKeys[key], shiftKey);
+        handleAction(normalModeActionKeys[key], shiftKey);
       } else if (key === 'w') {
-        this.selectNextClue(false);
+        selectNextClue(false);
       } else if (key === 'b') {
-        this.selectNextClue(true);
+        selectNextClue(true);
       } else if (key === 'i') {
         onVimInsert && onVimInsert();
       } else if (key === 's') {
-        this.delete();
+        deleteCell();
         onVimInsert && onVimInsert();
       }
     } else if (key === '.') {
@@ -264,58 +260,58 @@ export default class GridControls extends Component {
       return true;
     } else if (key === 'Escape') {
       onVimNormal && onVimNormal();
-    } else if (vimInsert && !this.props.frozen) {
+    } else if (vimInsert && !props.frozen) {
       const letter = key.toUpperCase();
-      if (this.validLetter(letter)) {
-        this.typeLetter(letter, shiftKey);
+      if (validLetter(letter)) {
+        typeLetter(letter, shiftKey);
         return true;
       }
     }
-  };
+  }, [props, handleAction, handleAltKey, selectNextClue, deleteCell, validLetter, typeLetter]);
 
-  handleClick(ev) {
+  const handleClick = useCallback((ev) => {
     ev.preventDefault();
-    this.focus();
-  }
+    focus();
+  }, [focus]);
 
   // takes in a Keyboard Event
-  handleKeyDown(ev) {
-    const {vimMode} = this.props;
-    const _handleKeyDown = vimMode ? this._handleKeyDownVim : this._handleKeyDown;
+  const handleKeyDown = useCallback((ev) => {
+    const {vimMode} = props;
+    const handleKeyDownFunc = vimMode ? _handleKeyDownVim : _handleKeyDown;
 
-    if (ev.target !== this.inputRef && (ev.tagName === 'INPUT' || ev.metaKey || ev.ctrlKey)) {
+    if (ev.target !== inputRef.current && (ev.tagName === 'INPUT' || ev.metaKey || ev.ctrlKey)) {
       return;
     }
-    if (_handleKeyDown(ev.key, ev.shiftKey, ev.altKey)) {
+    if (handleKeyDownFunc(ev.key, ev.shiftKey, ev.altKey)) {
       ev.preventDefault();
       ev.stopPropagation();
     }
-  }
+  }, [props.vimMode, _handleKeyDownVim, _handleKeyDown]);
 
-  goToNextEmptyCell({nextClueIfFilled = false} = {}) {
-    const {r, c} = this.props.selected;
-    const nextEmptyCell = this.grid.getNextEmptyCell(r, c, this.props.direction, {
+  const goToNextEmptyCell = useCallback(({nextClueIfFilled = false} = {}) => {
+    const {r, c} = props.selected;
+    const nextEmptyCell = grid.getNextEmptyCell(r, c, props.direction, {
       skipFirst: true,
     });
     if (nextEmptyCell) {
-      this.setSelected(nextEmptyCell);
+      setSelected(nextEmptyCell);
       return nextEmptyCell;
     }
-    const nextCell = this.grid.getNextCell(r, c, this.props.direction);
+    const nextCell = grid.getNextCell(r, c, props.direction);
     if (nextCell) {
-      this.setSelected(nextCell);
+      setSelected(nextCell);
       return nextCell;
     }
     if (nextClueIfFilled) {
-      this.selectNextClue();
+      selectNextClue();
     }
-  }
+  }, [props.selected, props.direction, grid, setSelected, selectNextClue]);
 
-  goToPreviousCell() {
-    let {r, c} = this.props.selected;
-    const grid = this.props.grid;
+  const goToPreviousCell = useCallback(() => {
+    let {r, c} = props.selected;
+    const grid = props.grid;
     const step = () => {
-      if (this.props.direction === 'across') {
+      if (props.direction === 'across') {
         if (c > 0) {
           c--;
         } else {
@@ -329,109 +325,106 @@ export default class GridControls extends Component {
         c--;
       }
     };
-    const ok = () => this.grid.isInBounds(r, c) && this.grid.isWhite(r, c);
+    const ok = () => grid.isInBounds(r, c) && grid.isWhite(r, c);
     step();
-    safe_while(() => this.grid.isInBounds(r, c) && !ok(), step);
+    safe_while(() => grid.isInBounds(r, c) && !ok(), step);
     if (ok()) {
-      this.setSelected({r, c});
+      setSelected({r, c});
       return {r, c};
     }
-  }
+  }, [props.selected, props.direction, props.grid, setSelected]);
 
-  typeLetter(letter, isRebus, {nextClueIfFilled} = {}) {
-    if (this.props.beta) {
-      return this.typeLetterSync(letter, isRebus, {nextClueIfFilled});
+  const typeLetter = useCallback((letter, isRebus, {nextClueIfFilled} = {}) => {
+    if (props.beta) {
+      return typeLetterSync(letter, isRebus, {nextClueIfFilled});
     }
-    if (!this.nextTime) this.nextTime = Date.now();
+    if (!nextTime.current) nextTime.current = Date.now();
     setTimeout(() => {
       if (letter === '/') isRebus = true;
-      const {r, c} = this.props.selected;
-      const value = this.props.grid[r][c].value;
+      const {r, c} = props.selected;
+      const value = props.grid[r][c].value;
       if (!isRebus) {
-        this.goToNextEmptyCell({nextClueIfFilled});
+        goToNextEmptyCell({nextClueIfFilled});
       }
-      this.props.updateGrid(r, c, isRebus ? (value || '').substr(0, 10) + letter : letter);
-    }, Math.max(0, this.nextTime - Date.now()));
-    this.nextTime = Math.max(this.nextTime, Date.now()) + 30;
-  }
+      props.updateGrid(r, c, isRebus ? (value || '').substr(0, 10) + letter : letter);
+    }, Math.max(0, nextTime.current - Date.now()));
+    nextTime.current = Math.max(nextTime.current, Date.now()) + 30;
+  }, [props.beta, props.selected, props.grid, props.updateGrid, typeLetterSync, goToNextEmptyCell]);
 
-  typeLetterSync(letter, isRebus, {nextClueIfFilled} = {}) {
+  const typeLetterSync = useCallback((letter, isRebus, {nextClueIfFilled} = {}) => {
     if (letter === '/') isRebus = true;
-    const {r, c} = this.props.selected;
-    const value = this.props.grid[r][c].value;
+    const {r, c} = props.selected;
+    const value = props.grid[r][c].value;
     if (!isRebus) {
-      this.goToNextEmptyCell({nextClueIfFilled});
+      goToNextEmptyCell({nextClueIfFilled});
     }
-    this.props.updateGrid(r, c, isRebus ? (value || '').substr(0, 10) + letter : letter);
-  }
+    props.updateGrid(r, c, isRebus ? (value || '').substr(0, 10) + letter : letter);
+  }, [props.selected, props.grid, props.updateGrid, goToNextEmptyCell]);
 
   // Returns true if the letter was successfully deleted
-  delete() {
-    const {r, c} = this.props.selected;
-    if (this.props.grid[r][c].value !== '' && !this.props.grid[r][c].good) {
-      this.props.updateGrid(r, c, '');
+  const deleteCell = useCallback(() => {
+    const {r, c} = props.selected;
+    if (props.grid[r][c].value !== '' && !props.grid[r][c].good) {
+      props.updateGrid(r, c, '');
       return true;
     }
     return false;
-  }
+  }, [props.selected, props.grid, props.updateGrid]);
 
-  backspace(shouldStay) {
-    if (!this.delete() && !shouldStay) {
-      const cell = this.goToPreviousCell();
+  const backspace = useCallback((shouldStay) => {
+    if (!deleteCell() && !shouldStay) {
+      const cell = goToPreviousCell();
       if (cell) {
-        this.props.updateGrid(cell.r, cell.c, '');
+        props.updateGrid(cell.r, cell.c, '');
       }
     }
-  }
+  }, [deleteCell, goToPreviousCell, props.updateGrid]);
 
-  isGridFilled() {
-    return this.grid.isGridFilled();
-  }
+  const isGridFilled = useCallback(() => {
+    return grid.isGridFilled();
+  }, [grid]);
 
-  setDirection(direction) {
-    this.props.onSetDirection(direction);
-  }
+  const setDirection = useCallback((direction) => {
+    props.onSetDirection(direction);
+  }, [props.onSetDirection]);
 
-  canSetDirection(direction) {
-    return this.props.canSetDirection(direction);
-  }
+  const canSetDirection = useCallback((direction) => {
+    return props.canSetDirection(direction);
+  }, [props.canSetDirection]);
 
-  setSelected(selected) {
-    this.props.onSetSelected(selected);
-  }
+  const setSelected = useCallback((selected) => {
+    props.onSetSelected(selected);
+  }, [props.onSetSelected]);
 
-  focus() {
-    this.inputRef.current.focus({preventScroll: true});
-  }
+  const focus = useCallback(() => {
+    inputRef.current.focus({preventScroll: true});
+  }, []);
 
-  render() {
-    const gridProps = {
-      style: {
-        // Disable double-tap-to-zoom as it delays clicks by up to 300ms (to see if it becomes a double-tap)
-        touchAction: 'manipulation',
-      },
-    };
-    const inputProps = {
-      style: {
-        opacity: 0,
-        width: 0,
-        height: 0,
-      },
-      autoComplete: 'none',
-      autoCapitalize: 'none',
-    };
-    return (
-      <div
-        ref="gridControls"
-        className="grid-controls"
-        tabIndex="1"
-        onClick={this.handleClick.bind(this)}
-        onKeyDown={this.handleKeyDown.bind(this)}
-        {...gridProps}
-      >
-        <div className="grid--content">{this.props.children}</div>
-        <input tabIndex={-1} name="grid" ref={this.inputRef} {...inputProps} />
-      </div>
-    );
-  }
+  const gridProps = {
+    style: {
+      // Disable double-tap-to-zoom as it delays clicks by up to 300ms (to see if it becomes a double-tap)
+      touchAction: 'manipulation',
+    },
+  };
+  const inputProps = {
+    style: {
+      opacity: 0,
+      width: 0,
+      height: 0,
+    },
+    autoComplete: 'none',
+    autoCapitalize: 'none',
+  };
+  return (
+    <div
+      className="grid-controls"
+      tabIndex="1"
+      onClick={handleClick}
+      onKeyDown={handleKeyDown}
+      {...gridProps}
+    >
+      <div className="grid--content">{props.children}</div>
+      <input tabIndex={-1} name="grid" ref={inputRef} {...inputProps} />
+    </div>
+  );
 }
