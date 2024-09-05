@@ -1,19 +1,19 @@
 import GridControls from './GridControls';
 
 export default class ListViewControls extends GridControls {
-  actions = {
-    left: this.moveToPreviousCell.bind(this),
-    up: this.selectPreviousClue.bind(this),
-    down: this.selectNextClue.bind(this),
-    right: this.moveToNextCell.bind(this),
-    forward: this.selectNextClue.bind(this),
-    backward: this.selectPreviousClue.bind(this),
-    home: this.moveToEdge(true).bind(this),
-    end: this.moveToEdge(false).bind(this),
-    backspace: this.backspace.bind(this),
-    delete: this.delete.bind(this),
-    tab: this.selectNextClue.bind(this),
-    space: this.flipDirection.bind(this),
+  actions: {[key: string]: (shiftKey?: boolean) => void} = {
+    left: () => this.moveToPreviousCell(),
+    up: () => this.selectPreviousClue(),
+    down: (shiftKey?: boolean) => this.selectNextClue(shiftKey || false),
+    right: () => this.moveToNextCell(),
+    forward: (shiftKey?: boolean) => this.selectNextClue(shiftKey || false),
+    backward: () => this.selectPreviousClue(),
+    home: () => this.moveToEdge(true),
+    end: () => this.moveToEdge(false),
+    backspace: (shiftKey?: boolean) => this.backspace(!!shiftKey),
+    delete: () => this.delete(),
+    tab: (shiftKey?: boolean) => this.selectNextClue(shiftKey || false),
+    space: () => this.flipDirection(),
   };
 
   moveToNextCell() {
@@ -23,7 +23,7 @@ export default class ListViewControls extends GridControls {
       this.setSelected(nextCell);
       return nextCell;
     }
-    this.selectNextClue();
+    this.selectNextClue(false);
   }
 
   moveToPreviousCell() {
