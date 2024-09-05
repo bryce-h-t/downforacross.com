@@ -26,6 +26,13 @@ interface GridControlsProps {
   onPressEnter?: () => void;
   onPressPeriod?: () => void;
   onPressEscape?: () => void;
+  frozen?: boolean;
+  beta?: boolean;
+  updateGrid: (r: number, c: number, value: string) => void;
+  vimMode?: boolean;
+  onVimNormal?: () => void;
+  onVimInsert?: () => void;
+  vimInsert?: boolean;
 }
 
 interface GridControlsState {
@@ -40,7 +47,7 @@ export default class GridControls extends Component<GridControlsProps, GridContr
     this.inputRef = React.createRef();
   }
 
-  actions = {
+  actions: {[key: string]: (shiftKey?: boolean) => void} = {
     left: this.setDirectionWithCallback('across', this.moveSelectedBy(0, -1).bind(this)).bind(this),
     up: this.setDirectionWithCallback('down', this.moveSelectedBy(-1, 0).bind(this)).bind(this),
     down: this.setDirectionWithCallback('down', this.moveSelectedBy(1, 0).bind(this)).bind(this),
