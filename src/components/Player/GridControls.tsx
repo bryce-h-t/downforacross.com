@@ -232,7 +232,8 @@ export default class GridControls extends Component<GridControlsProps, GridContr
   }
 
   _handleKeyDownVim = (key: string, shiftKey: boolean, altKey: boolean): boolean => {
-    type ActionKey = keyof GridControls['actions'];
+    const actions = this.actions; // Create a local reference to this.actions
+    type ActionKey = keyof typeof actions;
     const normalModeActionKeys: Record<string, ActionKey> = {
       h: 'left',
       j: 'down',
@@ -247,8 +248,8 @@ export default class GridControls extends Component<GridControlsProps, GridContr
     if (!vimInsert) {
       if (key in normalModeActionKeys) {
         const action = normalModeActionKeys[key];
-        if (action in this.actions) {
-          this.actions[action as keyof GridControls['actions']]();
+        if (action in actions) {
+          actions[action]();
           return true;
         }
       } else if (key === 'w') {
@@ -272,7 +273,7 @@ export default class GridControls extends Component<GridControlsProps, GridContr
   };
 
   _handleKeyDown = (key: string, shiftKey: boolean, altKey: boolean): boolean => {
-    const actionKeys: Record<string, keyof GridControls['actions']> = {
+    const actionKeys: Record<string, keyof typeof this.actions> = {
       ArrowLeft: 'left',
       ArrowUp: 'up',
       ArrowDown: 'down',
@@ -290,9 +291,9 @@ export default class GridControls extends Component<GridControlsProps, GridContr
     const {onPressEnter, onPressPeriod, onPressEscape} = this.props;
 
     if (key in actionKeys) {
-      const action = actionKeys[key];
+      const action = actionKeys[key as keyof typeof actionKeys];
       if (action in this.actions) {
-        this.actions[action as keyof GridControls['actions']]();
+        this.actions[action]();
         return true;
       }
     }
