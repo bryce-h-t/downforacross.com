@@ -10,6 +10,7 @@ import Hints from '../Compose/Hints';
 import GridObject from '../../lib/wrappers/GridWrapper';
 import * as gameUtils from '../../lib/gameUtils';
 
+// Polyfill for requestIdleCallback
 window.requestIdleCallback =
   window.requestIdleCallback ||
   function (cb) {
@@ -24,35 +25,48 @@ window.requestIdleCallback =
     }, 1);
   };
 
+// Polyfill for cancelIdleCallback
 window.cancelIdleCallback =
   window.cancelIdleCallback ||
   function (id) {
     clearTimeout(id);
   };
 
-/*
- * Summary of Editor component
+/**
+ * Editor component for a crossword puzzle editor.
  *
- * Props: { grid, clues, updateGrid, updateClues }
+ * This component manages the editing interface for crossword puzzles,
+ * including the grid, clues, and various editing controls.
  *
- * State: { selected, direction }
+ * Props:
+ * @param {Object} grid - The current state of the crossword grid
+ * @param {Object} clues - The current clues for the crossword
+ * @param {Function} updateGrid - Callback to update the grid
+ * @param {Function} updateClues - Callback to update the clues
+ * @param {Function} onUpdateCursor - Callback when the cursor position is updated
+ * @param {Function} onFlipColor - Callback to flip the color of a cell
+ * @param {Function} onUpdateClue - Callback to update a specific clue
+ * @param {Function} onChange - Callback when any change is made
+ * @param {Function} onAutofill - Callback to trigger autofill
+ * @param {Function} onPublish - Callback to publish the crossword
+ * @param {Function} onChangeRows - Callback to change the number of rows
+ * @param {Function} onChangeColumns - Callback to change the number of columns
+ * @param {Function} onClearPencil - Callback to clear pencil marks
+ * @param {Function} onUnfocus - Callback when the editor should lose focus
+ * @param {string} myColor - Color associated with the current user
  *
- * Children: [ GridControls, Grid, EditableClues ]
- * - GridControls.props:
- *   - attributes: { selected, direction, grid, clues }
- *   - callbacks: { setSelected, setDirection }
- * - Grid.props:
- *   - attributes: { grid, selected, direction }
- *   - callbacks: { setSelected, changeDirection }
- * - EditableClues.props:
- *   - attributes: { getClueList(), selected, halfSelected }
- *   - callbacks: { selectClue }
+ * State:
+ * @property {Object} selected - Currently selected cell {r, c}
+ * @property {string} direction - Current direction ('across' or 'down')
+ * @property {boolean} frozen - Whether the grid is frozen (locked) or not
  *
- * Potential parents (so far):
- * - Compose
- * */
-
+ * Children: GridControls, Grid, EditableClues
+ */
 export default class Editor extends Component {
+  /**
+   * Initialize the Editor component.
+   * Sets up initial state and instance variables.
+   */
   constructor() {
     super();
     this.state = {
@@ -63,80 +77,135 @@ export default class Editor extends Component {
       direction: 'across',
       frozen: false,
     };
-    this.prvNum = {};
-    this.prvIdleID = {};
+    this.prvNum = {}; // Stores previous clue numbers for scrolling
+    this.prvIdleID = {}; // Stores previous idle callback IDs
   }
 
+  /**
+   * Getter for the grid object.
+   * Creates a new GridObject instance from the current grid prop and assigns numbers to cells.
+   * @returns {GridObject} The current grid with assigned numbers
+   */
   get grid() {
     const grid = new GridObject(this.props.grid);
     grid.assignNumbers();
     return grid;
   }
 
-  /* Callback fns, to be passed to child components */
+  /* Callback functions to be passed to child components */
 
+  /**
+   * Determines if the direction can be set.
+   * @returns {boolean} Always returns true in this implementation.
+   */
   canSetDirection = () => true;
 
+  /**
+   * Updates the direction state of the editor.
+   * @param {string} direction - The new direction ('across' or 'down').
+   */
   handleSetDirection = (direction) => {
-    this.setState({
-      direction,
-    });
+    this.setState({direction});
   };
 
+  /**
+   * Updates the selected cell state and notifies parent of cursor update.
+   * @param {Object} selected - The newly selected cell coordinates { r, c }.
+   */
   handleSetSelected = (selected) => {
-    this.setState({
-      selected,
-    });
+    this.setState({selected});
     this.props.onUpdateCursor(selected);
   };
 
+  /**
+   * Toggles the direction between 'across' and 'down'.
+   */
   handleChangeDirection = () => {
     this.setState((prevState) => ({
       direction: gameUtils.getOppositeDirection(prevState.direction),
     }));
   };
 
+  /**
+   * Selects a clue in the grid controls.
+   * @param {string} direction - The direction of the clue ('across' or 'down').
+   * @param {number} number - The clue number.
+   */
   handleSelectClue = (direction, number) => {
     this.refs.gridControls.selectClue(direction, number);
   };
 
+  /**
+   * Updates a cell in the grid and triggers onChange event.
+   * @param {number} r - The row index of the cell.
+   * @param {number} c - The column index of the cell.
+   * @param {string} value - The new value for the cell.
+   */
   handleUpdateGrid = (r, c, value) => {
     this.props.onUpdateGrid(r, c, value);
     this.props.onChange();
   };
 
+  /**
+   * Handles the period key press to flip the color of the selected cell.
+   */
   handlePressPeriod = () => {
     const {selected} = this.state;
     this.props.onFlipColor(selected.r, selected.c);
     this.props.onChange();
   };
 
+  /**
+   * Updates the clue for the currently selected direction and cell.
+   * @param {string} value - The new clue text.
+   */
   handleChangeClue = (value) => {
     const {direction} = this.state;
     this.props.onUpdateClue(this.selectedParent.r, this.selectedParent.c, direction, value);
     this.props.onChange();
   };
 
+  /**
+   * Triggers the autofill action for the grid.
+   */
   handleAutofill = () => {
     this.props.onAutofill();
   };
 
+  /**
+   * Triggers the publish action for the puzzle.
+   */
   handlePublish = () => {
     this.props.onPublish();
   };
 
+  /**
+   * Handles the change in the number of rows in the grid.
+   * @param {Event} event - The input change event.
+   */
   handleChangeRows = (event) => {
     this.props.onChangeRows(event.target.value);
   };
 
+  /**
+   * Handles the change in the number of columns in the grid.
+   * @param {Event} event - The input change event.
+   */
   handleChangeColumns = (event) => {
     this.props.onChangeColumns(event.target.value);
   };
 
+  /**
+   * Handles clearing all pencil marks from the grid.
+   */
   handleClearPencil = () => {
     this.props.onClearPencil();
   };
 
+  /**
+   * Toggles the frozen state of the grid.
+   * When frozen, the grid cannot be edited.
+   */
   handleToggleFreeze = () => {
     this.setState((prevState) => ({
       frozen: !prevState.frozen,
@@ -145,11 +214,19 @@ export default class Editor extends Component {
 
   /* Helper functions used when rendering */
 
+  /**
+   * Checks if the currently selected cell is white (not a black square).
+   * @returns {boolean} True if the selected cell is white, false otherwise.
+   */
   get selectedIsWhite() {
     const {selected} = this.state;
     return this.grid.isWhite(selected.r, selected.c);
   }
 
+  /**
+   * Generates the clue bar abbreviation (e.g., "1A" for 1-Across).
+   * @returns {string|undefined} The clue abbreviation or undefined if not applicable.
+   */
   get clueBarAbbreviation() {
     const {direction} = this.state;
     if (!this.selectedIsWhite) return undefined;
@@ -157,36 +234,72 @@ export default class Editor extends Component {
     return this.selectedClueNumber + direction.substr(0, 1).toUpperCase();
   }
 
+  /**
+   * Gets the clue number for the currently selected cell and direction.
+   * @returns {number|undefined} The clue number or undefined if not applicable.
+   */
   get selectedClueNumber() {
     const {selected, direction} = this.state;
     if (!this.selectedIsWhite) return undefined;
     return this.grid.getParent(selected.r, selected.c, direction);
   }
 
+  /**
+   * Gets the clue number for the currently selected cell in the opposite direction.
+   * @returns {number|undefined} The clue number or undefined if not applicable.
+   */
   get halfSelectedClueNumber() {
     const {selected, direction} = this.state;
     if (!this.selectedIsWhite) return undefined;
     return this.grid.getParent(selected.r, selected.c, gameUtils.getOppositeDirection(direction));
   }
 
+  /**
+   * Gets the parent cell (first cell of the current clue) for the selected clue.
+   * @returns {Object|undefined} The parent cell object or undefined if not applicable.
+   */
   get selectedParent() {
     if (!this.selectedIsWhite) return undefined;
     return this.grid.getCellByNumber(this.selectedClueNumber);
   }
 
+  /**
+   * Checks if a clue is completely filled.
+   * @param {string} direction - The direction of the clue ('across' or 'down').
+   * @param {number} number - The clue number.
+   * @returns {boolean} True if the clue is filled, false otherwise.
+   */
   isClueFilled(direction, number) {
     const clueRoot = this.grid.getCellByNumber(number);
     return !this.grid.hasEmptyCells(clueRoot.r, clueRoot.c, direction);
   }
 
+  /**
+   * Checks if a clue is currently selected.
+   * @param {string} direction - The direction of the clue ('across' or 'down').
+   * @param {number} number - The clue number.
+   * @returns {boolean} True if the clue is selected, false otherwise.
+   */
   isClueSelected(direction, number) {
     return direction === this.state.direction && number === this.selectedClueNumber;
   }
 
+  /**
+   * Checks if a clue is half-selected (selected in the opposite direction).
+   * @param {string} direction - The direction of the clue ('across' or 'down').
+   * @param {number} number - The clue number.
+   * @returns {boolean} True if the clue is half-selected, false otherwise.
+   */
   isClueHalfSelected(direction, number) {
     return direction !== this.state.direction && number === this.halfSelectedClueNumber;
   }
 
+  /**
+   * Checks if a cell should be highlighted (part of the current clue but not selected).
+   * @param {number} r - The row of the cell.
+   * @param {number} c - The column of the cell.
+   * @returns {boolean} True if the cell should be highlighted, false otherwise.
+   */
   isHighlighted(r, c) {
     const {selected, direction} = this.state;
     const selectedParent = this.grid.getParent(selected.r, selected.c, direction);
@@ -197,6 +310,12 @@ export default class Editor extends Component {
     );
   }
 
+  /**
+   * Checks if a cell is currently selected.
+   * @param {number} r - The row of the cell.
+   * @param {number} c - The column of the cell.
+   * @returns {boolean} True if the cell is selected, false otherwise.
+   */
   isSelected(r, c) {
     const {selected} = this.state;
     return r === selected.r && c === selected.c;
@@ -204,8 +323,13 @@ export default class Editor extends Component {
 
   /* Misc functions */
 
-  // Interacts directly with the DOM
-  // Very slow -- use with care
+  /**
+   * Scrolls to the specified clue in the clue list.
+   * Interacts directly with the DOM and is very slow -- use with care.
+   * @param {string} dir - The direction of the clue ('across' or 'down').
+   * @param {number} num - The clue number.
+   * @param {HTMLElement} el - The DOM element of the clue.
+   */
   scrollToClue(dir, num, el) {
     if (el && this.prvNum[dir] !== num) {
       this.prvNum[dir] = num;
@@ -221,20 +345,33 @@ export default class Editor extends Component {
     }
   }
 
+  /**
+   * Focuses the grid controls.
+   */
   focusGrid() {
     this.refs.gridControls && this.refs.gridControls.focus();
   }
 
+  /**
+   * Focuses the clue input.
+   */
   focusClue() {
     this.refs.clue && this.refs.clue.focus();
   }
 
+  /**
+   * Focuses the editor, which by default focuses the grid.
+   */
   focus() {
     this.focusGrid();
   }
 
   /* Render */
 
+  /**
+   * Renders the left side of the editor, including the clue bar, grid, and control buttons.
+   * @returns {JSX.Element} The rendered left side of the editor.
+   */
   renderLeft() {
     const {selected, direction} = this.state;
     return (
@@ -307,6 +444,11 @@ export default class Editor extends Component {
     );
   }
 
+  /**
+   * Renders the clue list for a given direction.
+   * @param {string} dir - The direction of the clues ('across' or 'down').
+   * @returns {JSX.Element[]} An array of rendered clue elements.
+   */
   renderClueList(dir) {
     return this.props.clues[dir].map(
       (clue, i) =>
@@ -341,6 +483,10 @@ export default class Editor extends Component {
     );
   }
 
+  /**
+   * Renders the entire Editor component.
+   * @returns {JSX.Element} The rendered Editor component.
+   */
   render() {
     const {selected, direction, frozen} = this.state;
     return (
