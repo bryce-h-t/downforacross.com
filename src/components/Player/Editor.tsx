@@ -10,6 +10,18 @@ import Hints from '../Compose/Hints';
 import GridObject from '../../lib/wrappers/GridWrapper';
 import * as gameUtils from '../../lib/gameUtils';
 
+interface IdleDeadline {
+  didTimeout: boolean;
+  timeRemaining: () => number;
+}
+
+declare global {
+  interface Window {
+    requestIdleCallback: (callback: (deadline: IdleDeadline) => void, opts?: {timeout: number}) => number;
+    cancelIdleCallback: (handle: number) => void;
+  }
+}
+
 window.requestIdleCallback =
   window.requestIdleCallback ||
   function (cb) {
@@ -52,9 +64,44 @@ window.cancelIdleCallback =
  * - Compose
  * */
 
-export default class Editor extends Component {
-  constructor() {
-    super();
+interface EditorProps {
+  grid: any;
+  clues: {
+    across: string[];
+    down: string[];
+  };
+  size: number;
+  cursors: any;
+  myColor: string;
+  onUpdateGrid: (r: number, c: number, value: string) => void;
+  onUpdateCursor: (selected: {r: number; c: number}) => void;
+  onChange: () => void;
+  onFlipColor: (r: number, c: number) => void;
+  onUpdateClue: (r: number, c: number, direction: string, value: string) => void;
+  onAutofill: () => void;
+  onPublish: () => void;
+  onChangeRows: (value: string) => void;
+  onChangeColumns: (value: string) => void;
+  onClearPencil: () => void;
+  onUnfocus: () => void;
+}
+
+interface EditorState {
+  selected: {
+    r: number;
+    c: number;
+  };
+  direction: 'across' | 'down';
+  frozen: boolean;
+}
+
+export default class Editor extends Component<EditorProps, EditorState> {
+  private prvNum: {[key: string]: number} = {};
+  private prvIdleID: {[key: string]: number} = {};
+  private clueScroll: number | undefined;
+
+  constructor(props: EditorProps) {
+    super(props);
     this.state = {
       selected: {
         r: 0,
@@ -63,11 +110,9 @@ export default class Editor extends Component {
       direction: 'across',
       frozen: false,
     };
-    this.prvNum = {};
-    this.prvIdleID = {};
   }
 
-  get grid() {
+  get grid(): GridObject {
     const grid = new GridObject(this.props.grid);
     grid.assignNumbers();
     return grid;
@@ -75,69 +120,72 @@ export default class Editor extends Component {
 
   /* Callback fns, to be passed to child components */
 
-  canSetDirection = () => true;
+  canSetDirection = (): boolean => true;
 
-  handleSetDirection = (direction) => {
+  handleSetDirection = (direction: 'across' | 'down'): void => {
     this.setState({
       direction,
     });
   };
 
-  handleSetSelected = (selected) => {
+  handleSetSelected = (selected: {r: number; c: number}): void => {
     this.setState({
       selected,
     });
     this.props.onUpdateCursor(selected);
   };
 
-  handleChangeDirection = () => {
+  handleChangeDirection = (): void => {
     this.setState((prevState) => ({
       direction: gameUtils.getOppositeDirection(prevState.direction),
     }));
   };
 
-  handleSelectClue = (direction, number) => {
-    this.refs.gridControls.selectClue(direction, number);
+  handleSelectClue = (direction: 'across' | 'down', number: number): void => {
+    (this.refs.gridControls as any).selectClue(direction, number);
   };
 
-  handleUpdateGrid = (r, c, value) => {
+  handleUpdateGrid = (r: number, c: number, value: string): void => {
     this.props.onUpdateGrid(r, c, value);
     this.props.onChange();
   };
 
-  handlePressPeriod = () => {
+  handlePressPeriod = (): void => {
     const {selected} = this.state;
     this.props.onFlipColor(selected.r, selected.c);
     this.props.onChange();
   };
 
-  handleChangeClue = (value) => {
+  handleChangeClue = (value: string): void => {
     const {direction} = this.state;
-    this.props.onUpdateClue(this.selectedParent.r, this.selectedParent.c, direction, value);
-    this.props.onChange();
+    const selectedParent = this.selectedParent;
+    if (selectedParent) {
+      this.props.onUpdateClue(selectedParent.r, selectedParent.c, direction, value);
+      this.props.onChange();
+    }
   };
 
-  handleAutofill = () => {
+  handleAutofill = (): void => {
     this.props.onAutofill();
   };
 
-  handlePublish = () => {
+  handlePublish = (): void => {
     this.props.onPublish();
   };
 
-  handleChangeRows = (event) => {
+  handleChangeRows = (event: React.ChangeEvent<HTMLInputElement>): void => {
     this.props.onChangeRows(event.target.value);
   };
 
-  handleChangeColumns = (event) => {
+  handleChangeColumns = (event: React.ChangeEvent<HTMLInputElement>): void => {
     this.props.onChangeColumns(event.target.value);
   };
 
-  handleClearPencil = () => {
+  handleClearPencil = (): void => {
     this.props.onClearPencil();
   };
 
-  handleToggleFreeze = () => {
+  handleToggleFreeze = (): void => {
     this.setState((prevState) => ({
       frozen: !prevState.frozen,
     }));
@@ -145,49 +193,50 @@ export default class Editor extends Component {
 
   /* Helper functions used when rendering */
 
-  get selectedIsWhite() {
+  get selectedIsWhite(): boolean {
     const {selected} = this.state;
     return this.grid.isWhite(selected.r, selected.c);
   }
 
-  get clueBarAbbreviation() {
+  get clueBarAbbreviation(): string | undefined {
     const {direction} = this.state;
     if (!this.selectedIsWhite) return undefined;
     if (!this.selectedClueNumber) return undefined;
     return this.selectedClueNumber + direction.substr(0, 1).toUpperCase();
   }
 
-  get selectedClueNumber() {
+  get selectedClueNumber(): number | undefined {
     const {selected, direction} = this.state;
     if (!this.selectedIsWhite) return undefined;
     return this.grid.getParent(selected.r, selected.c, direction);
   }
 
-  get halfSelectedClueNumber() {
+  get halfSelectedClueNumber(): number | undefined {
     const {selected, direction} = this.state;
     if (!this.selectedIsWhite) return undefined;
     return this.grid.getParent(selected.r, selected.c, gameUtils.getOppositeDirection(direction));
   }
 
-  get selectedParent() {
+  get selectedParent(): {r: number; c: number} | undefined {
     if (!this.selectedIsWhite) return undefined;
-    return this.grid.getCellByNumber(this.selectedClueNumber);
+    const selectedClueNumber = this.selectedClueNumber;
+    return selectedClueNumber !== undefined ? this.grid.getCellByNumber(selectedClueNumber) : undefined;
   }
 
-  isClueFilled(direction, number) {
+  isClueFilled(direction: 'across' | 'down', number: number): boolean {
     const clueRoot = this.grid.getCellByNumber(number);
     return !this.grid.hasEmptyCells(clueRoot.r, clueRoot.c, direction);
   }
 
-  isClueSelected(direction, number) {
+  isClueSelected(direction: 'across' | 'down', number: number): boolean {
     return direction === this.state.direction && number === this.selectedClueNumber;
   }
 
-  isClueHalfSelected(direction, number) {
+  isClueHalfSelected(direction: 'across' | 'down', number: number): boolean {
     return direction !== this.state.direction && number === this.halfSelectedClueNumber;
   }
 
-  isHighlighted(r, c) {
+  isHighlighted(r: number, c: number): boolean {
     const {selected, direction} = this.state;
     const selectedParent = this.grid.getParent(selected.r, selected.c, direction);
     return (
@@ -197,7 +246,7 @@ export default class Editor extends Component {
     );
   }
 
-  isSelected(r, c) {
+  isSelected(r: number, c: number): boolean {
     const {selected} = this.state;
     return r === selected.r && c === selected.c;
   }
@@ -206,7 +255,7 @@ export default class Editor extends Component {
 
   // Interacts directly with the DOM
   // Very slow -- use with care
-  scrollToClue(dir, num, el) {
+  scrollToClue(dir: 'across' | 'down', num: number, el: HTMLElement): void {
     if (el && this.prvNum[dir] !== num) {
       this.prvNum[dir] = num;
       if (this.prvIdleID[dir]) {
@@ -214,28 +263,28 @@ export default class Editor extends Component {
       }
       this.prvIdleID[dir] = requestIdleCallback(() => {
         if (this.clueScroll === el.offsetTop) return;
-        const parent = el.offsetParent;
+        const parent = el.offsetParent as HTMLElement;
         parent.scrollTop = el.offsetTop - parent.offsetHeight * 0.4;
         this.clueScroll = el.offsetTop;
       });
     }
   }
 
-  focusGrid() {
-    this.refs.gridControls && this.refs.gridControls.focus();
+  focusGrid(): void {
+    (this.refs.gridControls as any)?.focus();
   }
 
-  focusClue() {
-    this.refs.clue && this.refs.clue.focus();
+  focusClue(): void {
+    (this.refs.clue as any)?.focus();
   }
 
-  focus() {
+  focus(): void {
     this.focusGrid();
   }
 
   /* Render */
 
-  renderLeft() {
+  renderLeft(): JSX.Element {
     const {selected, direction} = this.state;
     return (
       <div className="editor--main--left">
@@ -245,7 +294,7 @@ export default class Editor extends Component {
             <EditableSpan
               ref="clue"
               key_={`${direction}${this.selectedClueNumber}`}
-              value={this.props.clues[direction][this.selectedClueNumber] || ''}
+              value={this.props.clues[direction][this.selectedClueNumber || 0] || ''}
               onChange={this.handleChangeClue}
               onUnfocus={() => this.focusGrid()}
               hidden={!this.selectedIsWhite || !this.selectedClueNumber}
@@ -307,7 +356,7 @@ export default class Editor extends Component {
     );
   }
 
-  renderClueList(dir) {
+  renderClueList(dir: 'across' | 'down'): JSX.Element[] {
     return this.props.clues[dir].map(
       (clue, i) =>
         clue !== undefined && (
@@ -323,8 +372,8 @@ export default class Editor extends Component {
             }editor--main--clues--list--scroll--clue`}
             ref={
               this.isClueSelected(dir, i) || this.isClueHalfSelected(dir, i)
-                ? this.scrollToClue.bind(this, dir, i)
-                : null
+                ? (el: HTMLElement | null) => el && this.scrollToClue(dir, i, el)
+                : undefined
             }
             onClick={() => {
               this.handleSelectClue(dir, i);
@@ -341,7 +390,7 @@ export default class Editor extends Component {
     );
   }
 
-  render() {
+  render(): JSX.Element {
     const {selected, direction, frozen} = this.state;
     return (
       <Flex className="editor--main--wrapper">
@@ -368,7 +417,7 @@ export default class Editor extends Component {
               <Flex className="editor--main--clues" grow={1}>
                 {
                   // Clues component
-                  ['across', 'down'].map((dir, i) => (
+                  (['across', 'down'] as const).map((dir, i) => (
                     <Flex key={i} className="editor--main--clues--list">
                       <Flex className="editor--main--clues--list--title">{dir.toUpperCase()}</Flex>
                       <Flex column grow={1}>
