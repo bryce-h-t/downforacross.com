@@ -232,7 +232,7 @@ export default class GridControls extends Component<GridControlsProps, GridContr
   }
 
   _handleKeyDownVim = (key: string, shiftKey: boolean, altKey: boolean): boolean => {
-    type ActionKey = keyof typeof this.actions;
+    type ActionKey = keyof GridControls['actions'];
     const normalModeActionKeys: Record<string, ActionKey> = {
       h: 'left',
       j: 'down',
@@ -248,7 +248,7 @@ export default class GridControls extends Component<GridControlsProps, GridContr
       if (key in normalModeActionKeys) {
         const action = normalModeActionKeys[key];
         if (action in this.actions) {
-          this.actions[action]();
+          this.actions[action as keyof GridControls['actions']]();
           return true;
         }
       } else if (key === 'w') {
@@ -272,7 +272,7 @@ export default class GridControls extends Component<GridControlsProps, GridContr
   };
 
   _handleKeyDown = (key: string, shiftKey: boolean, altKey: boolean): boolean => {
-    const actionKeys: Record<string, keyof typeof this.actions> = {
+    const actionKeys: Record<string, keyof GridControls['actions']> = {
       ArrowLeft: 'left',
       ArrowUp: 'up',
       ArrowDown: 'down',
@@ -292,7 +292,7 @@ export default class GridControls extends Component<GridControlsProps, GridContr
     if (key in actionKeys) {
       const action = actionKeys[key];
       if (action in this.actions) {
-        this.actions[action]();
+        this.actions[action as keyof GridControls['actions']]();
         return true;
       }
     }
