@@ -343,7 +343,7 @@ export default class GridControls extends Component<GridControlsProps, GridContr
       return nextCell;
     }
     if (nextClueIfFilled) {
-      this.selectNextClue();
+      this.selectNextClue(false);
     }
   }
 
@@ -417,7 +417,7 @@ export default class GridControls extends Component<GridControlsProps, GridContr
     return false;
   }
 
-  backspace(shouldStay) {
+  backspace(shouldStay: boolean): void {
     if (!this.delete() && !shouldStay) {
       const cell = this.goToPreviousCell();
       if (cell) {
