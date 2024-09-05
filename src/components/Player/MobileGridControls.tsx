@@ -348,11 +348,15 @@ export default class MobileGridControls extends GridControls {
     return this.props.clues[direction]?.[clueNumber] ?? '';
   }
 
-  get mainClue() {
+  get mainClue(): {clueNumber: string; direction: string} {
     if (this.previousGesture) {
-      return this.state.previousClue;
+      return this.state.previousClue || {clueNumber: '', direction: ''};
     }
-    return {clueNumber: this.getSelectedClueNumber(), direction: this.props.direction};
+    const selectedClueNumber = this.getSelectedClueNumber();
+    return {
+      clueNumber: typeof selectedClueNumber === 'number' ? selectedClueNumber.toString() : selectedClueNumber,
+      direction: this.props.direction,
+    };
   }
 
   get previewClue() {
