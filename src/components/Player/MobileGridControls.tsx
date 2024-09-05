@@ -71,7 +71,7 @@ export default class MobileGridControls extends GridControls {
   state: MobileGridControlsState;
   prvInput: string;
   inputRef: React.RefObject<HTMLInputElement>;
-  zoomContainer: RefObject<HTMLDivElement>;
+  zoomContainer: React.RefObject<HTMLDivElement>;
   wasUnfocused: number;
   lastTouchMove: number;
   lastTouchStart: number;
@@ -621,8 +621,7 @@ export default class MobileGridControls extends GridControls {
   };
 
   renderMobileInputs() {
-    const inputProps: React.TextareaHTMLAttributes<HTMLTextAreaElement> &
-      React.InputHTMLAttributes<HTMLInputElement> = {
+    const inputProps: React.InputHTMLAttributes<HTMLInputElement> = {
       value: '$', // This resets the input to contain just "$" on every render.
       type: 'email',
       style: {
@@ -639,21 +638,6 @@ export default class MobileGridControls extends GridControls {
       onFocus: this.handleInputFocus,
       onChange: this.handleInputChange,
     };
-    const USE_TEXT_AREA = true;
-    if (USE_TEXT_AREA) {
-      return (
-        <>
-          <textarea name="1" {...inputProps} />
-          <textarea
-            name="2"
-            ref={this.inputRef as React.RefObject<HTMLInputElement>}
-            {...inputProps}
-            onKeyUp={this.handleKeyUp as React.KeyboardEventHandler<HTMLInputElement>}
-          />
-          <textarea name="3" {...inputProps} />
-        </>
-      );
-    }
     return (
       <>
         <input name="1" {...inputProps} />

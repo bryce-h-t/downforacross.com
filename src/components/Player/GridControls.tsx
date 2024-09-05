@@ -37,6 +37,7 @@ interface GridControlsProps {
   onSetCursorLock?: (lock: boolean) => void;
   onChangeDirection?: () => void;
   enablePan?: boolean;
+  enableDebug?: boolean;
 }
 
 interface GridControlsState {
@@ -44,11 +45,11 @@ interface GridControlsState {
 }
 
 export default class GridControls extends Component<GridControlsProps, GridControlsState> {
-  inputRef: React.RefObject<HTMLInputElement | HTMLTextAreaElement>;
+  inputRef: React.RefObject<HTMLInputElement>;
 
   constructor(props: GridControlsProps) {
     super(props);
-    this.inputRef = React.createRef();
+    this.inputRef = React.createRef<HTMLInputElement>();
   }
 
   actions: {[key: string]: (shiftKey?: boolean) => void} = {

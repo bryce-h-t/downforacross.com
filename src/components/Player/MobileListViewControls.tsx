@@ -2,58 +2,59 @@ import _ from 'lodash';
 import MobileGridControls from './MobileGridControls';
 
 export default class MobileListViewControls extends MobileGridControls {
-  actions = {
-    left: this.moveToPreviousCell.bind(this),
-    up: this.selectPreviousClue.bind(this),
-    down: this.selectNextClue.bind(this),
-    right: this.moveToNextCell.bind(this),
-    forward: this.selectNextClue.bind(this),
-    backward: this.selectPreviousClue.bind(this),
-    backspace: this.backspace.bind(this),
-    home: this.moveToEdge(true).bind(this),
-    end: this.moveToEdge(false).bind(this),
-    delete: this.delete.bind(this),
-    tab: this.selectNextClue.bind(this),
-    space: this.flipDirection.bind(this),
+  actions: {[key: string]: (shiftKey?: boolean) => void} = {
+    left: () => this.moveToPreviousCell(),
+    up: () => this.selectPreviousClue(),
+    down: (shiftKey?: boolean) => this.selectNextClue(shiftKey || false),
+    right: () => this.moveToNextCell(),
+    forward: (shiftKey?: boolean) => this.selectNextClue(shiftKey || false),
+    backward: () => this.selectPreviousClue(),
+    backspace: (shiftKey?: boolean) => this.backspace(!!shiftKey),
+    home: () => this.moveToEdge(true),
+    end: () => this.moveToEdge(false),
+    delete: () => this.delete(),
+    tab: (shiftKey?: boolean) => this.selectNextClue(shiftKey || false),
+    space: () => this.flipDirection(),
   };
 
-  moveToNextCell() {
+  moveToNextCell(): void {
     const {r, c} = this.props.selected;
     const nextCell = this.grid.getNextCell(r, c, this.props.direction);
     if (nextCell) {
       this.setSelected(nextCell);
-      return nextCell;
+      return;
     }
-    this.selectNextClue();
+    this.selectNextClue(false);
   }
 
-  moveToPreviousCell() {
+  moveToPreviousCell(): void {
     const {r, c} = this.props.selected;
     const previousCell = this.grid.getPreviousCell(r, c, this.props.direction);
     if (previousCell) {
       this.setSelected(previousCell);
-      return previousCell;
+      return;
     }
     this.selectPreviousClue();
   }
 
-  selectPreviousClue() {
+  selectPreviousClue(): void {
     this.selectNextClue(true);
   }
 
-  backspace(shouldStay: any): void {
+  backspace(shouldStay: boolean): void {
     if (!this.delete() && !shouldStay) {
-      const cell = this.moveToPreviousCell();
-      if (cell) {
-        this.props.updateGrid(cell.r, cell.c, '');
-      }
+      this.moveToPreviousCell();
+      const {r, c} = this.props.selected;
+      this.props.updateGrid(r, c, '');
     }
   }
 
-  handleTouchMove: (e: any) => void = (e: any) => {
+  handleTouchMove = (e: React.TouchEvent<HTMLDivElement>): void => {
     const transform = this.state.transform;
-    const rect = this.zoomContainer.current.getBoundingClientRect();
-    const previousAnchors: any = e.touches.length >= this.state.anchors.length && this.state.anchors;
+    const rect = this.zoomContainer.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    const previousAnchors = e.touches.length >= this.state.anchors.length ? this.state.anchors : [];
     const anchors = _.map(e.touches, ({pageX, pageY}, i) => {
       const x = pageX - rect.x;
       const y = pageY - rect.y;
@@ -62,7 +63,7 @@ export default class MobileListViewControls extends MobileGridControls {
           x: (x - transform.translateX) / transform.scale,
           y: (y - transform.translateY) / transform.scale,
         },
-        ...previousAnchors[i],
+        ...(previousAnchors[i] || {}),
         touchPosition: {x, y},
       };
     });
