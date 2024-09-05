@@ -19,8 +19,26 @@ interface GridControlsState {
 }
 
 interface GridControlsProps {
-  // Define the props of GridControls here
-  // This is a placeholder and should be replaced with actual properties
+  grid: any[][];
+  selected: {r: number; c: number};
+  direction: string;
+  onSetDirection: (direction: string) => void;
+  canSetDirection: (direction: string) => boolean;
+  onSetSelected: (selected: {r: number; c: number}) => void;
+  clues: {[direction: string]: {[clueNumber: string]: string}};
+  editMode?: boolean;
+  onReveal?: (type: string) => void;
+  onCheck?: (type: string) => void;
+  onPressEnter?: () => void;
+  onPressPeriod?: () => void;
+  onPressEscape?: () => void;
+  frozen?: boolean;
+  beta?: boolean;
+  updateGrid: (r: number, c: number, value: string) => void;
+  vimMode?: boolean;
+  onVimNormal?: () => void;
+  onVimInsert?: () => void;
+  vimInsert?: boolean;
 }
 
 interface MobileGridControlsState extends GridControlsState {
@@ -38,23 +56,19 @@ interface MobileGridControlsState extends GridControlsState {
 }
 
 interface MobileGridControlsProps extends GridControlsProps {
-  selected: {r: number; c: number};
-  direction: string;
-  clues: {[direction: string]: {[clueNumber: string]: string}};
   enableClueBarGestures: boolean;
   onSetCursorLock: (lock: boolean) => void;
   onChangeDirection: () => void;
-  onSetSelected: (selected: {r: number; c: number}) => void;
-  onPressPeriod?: () => void;
   enablePan: boolean;
   enableDebug?: boolean;
   children: React.ReactNode;
+  size: number;
 }
 
 export default class MobileGridControls extends GridControls {
   state: MobileGridControlsState;
   prvInput: string;
-  inputRef: RefObject<HTMLTextAreaElement>;
+  inputRef: RefObject<HTMLInputElement>;
   zoomContainer: RefObject<HTMLDivElement>;
   wasUnfocused: number;
   lastTouchMove: number;
@@ -70,6 +84,8 @@ export default class MobileGridControls extends GridControls {
       lastFitOnScreen: undefined,
       previousGesture: undefined,
       previousClue: undefined,
+      touchingClueBarStart: null,
+      touchingClueBarCurrent: null,
     };
     this.prvInput = '';
     this.inputRef = React.createRef();
@@ -108,7 +124,8 @@ export default class MobileGridControls extends GridControls {
     translateY = _.clamp(translateY, minTranslateY, maxTranslateY);
 
     if (fitCurrentClue) {
-      const {selected, size} = this.props;
+      const {selected} = this.props;
+      const size = (this.props as MobileGridControlsProps).size;
       const posX = selected.c * size;
       const posY = selected.r * size;
       const paddingX = (rect.width - this.grid.cols * size) / 2;
@@ -191,7 +208,7 @@ export default class MobileGridControls extends GridControls {
 
   handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
     if (e.touches.length === 2) {
-      this.props.onSetCursorLock(true);
+      this.props.onSetCursorLock?.(true);
     }
     this.lastTouchStart = Date.now();
     this.handleTouchMove(e);
@@ -231,7 +248,7 @@ export default class MobileGridControls extends GridControls {
 
   handleTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
     if (e.touches.length === 0 && this.state.anchors.length === 1 && this.lastTouchStart > Date.now() - 100) {
-      this.props.onSetCursorLock(false);
+      this.props.onSetCursorLock?.(false);
       let el = e.target as HTMLElement; // a descendant of grid for sure
       let rc: string | null = null;
       for (let i = 0; el && i < 20; i += 1) {
@@ -244,7 +261,7 @@ export default class MobileGridControls extends GridControls {
       if (rc) {
         const [r, c] = rc.split(' ').map((x) => Number(x));
         if (this.props.selected.r === r && this.props.selected.c === c) {
-          this.props.onChangeDirection();
+          this.props.onChangeDirection?.();
         } else {
           this.props.onSetSelected({r, c});
         }
