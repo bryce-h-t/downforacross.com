@@ -464,7 +464,12 @@ export default class MobileGridControls extends GridControls {
         <div
           ref={(e: HTMLDivElement | null) =>
             e &&
-            e.addEventListener('touchend', this.handleLeftArrowTouchEnd as EventListener, {passive: false})
+            e.addEventListener(
+              'touchend',
+              (event: TouchEvent) =>
+                this.handleLeftArrowTouchEnd((event as unknown) as React.TouchEvent<HTMLDivElement>),
+              {passive: false}
+            )
           }
           style={{display: 'flex'}}
         >
@@ -479,9 +484,24 @@ export default class MobileGridControls extends GridControls {
           className={classnames('mobile-grid-controls--clue-bar', {touching: this.state.touchingClueBar})}
           ref={(e: HTMLDivElement | null) => {
             if (!e) return;
-            e.addEventListener('touchstart', this.handleClueBarTouchStart as EventListener, {passive: false});
-            e.addEventListener('touchend', this.handleClueBarTouchEnd as EventListener, {passive: false});
-            e.addEventListener('touchmove', this.handleClueBarTouchMove as EventListener, {passive: false});
+            e.addEventListener(
+              'touchstart',
+              (event: TouchEvent) =>
+                this.handleClueBarTouchStart((event as unknown) as React.TouchEvent<HTMLDivElement>),
+              {passive: false}
+            );
+            e.addEventListener(
+              'touchend',
+              (event: TouchEvent) =>
+                this.handleClueBarTouchEnd((event as unknown) as React.TouchEvent<HTMLDivElement>),
+              {passive: false}
+            );
+            e.addEventListener(
+              'touchmove',
+              (event: TouchEvent) =>
+                this.handleClueBarTouchMove((event as unknown) as React.TouchEvent<HTMLDivElement>),
+              {passive: false}
+            );
           }}
           onClick={this.keepFocus}
         >
@@ -499,7 +519,12 @@ export default class MobileGridControls extends GridControls {
         <div
           ref={(e: HTMLDivElement | null) =>
             e &&
-            e.addEventListener('touchend', this.handleRightArrowTouchEnd as EventListener, {passive: false})
+            e.addEventListener(
+              'touchend',
+              (event: TouchEvent) =>
+                this.handleRightArrowTouchEnd((event as unknown) as React.TouchEvent<HTMLDivElement>),
+              {passive: false}
+            )
           }
           style={{display: 'flex'}}
         >
@@ -510,8 +535,10 @@ export default class MobileGridControls extends GridControls {
   }
 
   focusKeyboard() {
-    this.inputRef.current.selectionStart = this.inputRef.current.selectionEnd = this.inputRef.current.value.length;
-    this.inputRef.current.focus();
+    if (this.inputRef.current) {
+      this.inputRef.current.selectionStart = this.inputRef.current.selectionEnd = this.inputRef.current.value.length;
+      this.inputRef.current.focus();
+    }
   }
 
   keepFocus = () => {
@@ -520,7 +547,7 @@ export default class MobileGridControls extends GridControls {
     }
   };
 
-  handleInputFocus = (e) => {
+  handleInputFocus = (e: React.FocusEvent<HTMLTextAreaElement | HTMLInputElement>) => {
     this.focusKeyboard();
     this.setState({dbgstr: `INPUT FOCUS ${e.target.name}`});
     if (e.target.name === '1') {
@@ -528,10 +555,10 @@ export default class MobileGridControls extends GridControls {
     } else if (e.target.name === '3') {
       this.selectNextClue(false);
     }
-    this.wasUnfocused = null;
+    this.wasUnfocused = 0;
   };
 
-  handleInputBlur = (e) => {
+  handleInputBlur = (e: React.FocusEvent<HTMLTextAreaElement | HTMLInputElement>) => {
     if (e.target.name === '2') {
       this.wasUnfocused = Date.now();
     }
@@ -545,13 +572,13 @@ export default class MobileGridControls extends GridControls {
    * By comparing with this initial state, we can infer what the user did, i.e. if the new value is "$a" they
    * input the letter "a", if the new value is "", then they did a backspace.
    */
-  handleInputChange = (e) => {
+  handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
     const textArea = e.target;
     let input = textArea.value;
     this.setState({dbgstr: `INPUT IS [${input}]`});
 
     if (input === '') {
-      this.backspace();
+      this.backspace(false);
 
       // On some devices, the cursor gets stuck at position 0, even after the input box resets its value to "$".
       // To counter that, wait until after the render and then set it to the end. Use a direct reference to the
@@ -565,9 +592,9 @@ export default class MobileGridControls extends GridControls {
     if (input === ' ' || input === '@') {
       // hack hack
       // for some reason, email input [on ios safari & chrome mobile inspector] doesn't fire onChange at all when pressing spacebar
-      this.handleAction('space');
+      this.handleAction('space', false);
     } else if (input === ',') {
-      this.handleAction('tab');
+      this.handleAction('tab', false);
     } else if (input === '.') {
       this.props.onPressPeriod && this.props.onPressPeriod();
     } else {
