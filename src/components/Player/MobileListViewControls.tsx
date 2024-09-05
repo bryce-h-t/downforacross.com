@@ -2,19 +2,19 @@ import _ from 'lodash';
 import MobileGridControls from './MobileGridControls';
 
 export default class MobileListViewControls extends MobileGridControls {
-  actions = {
-    left: this.moveToPreviousCell.bind(this),
-    up: this.selectPreviousClue.bind(this),
-    down: this.selectNextClue.bind(this),
-    right: this.moveToNextCell.bind(this),
-    forward: this.selectNextClue.bind(this),
-    backward: this.selectPreviousClue.bind(this),
-    backspace: this.backspace.bind(this),
-    home: this.moveToEdge(true).bind(this),
-    end: this.moveToEdge(false).bind(this),
-    delete: this.delete.bind(this),
-    tab: this.selectNextClue.bind(this),
-    space: this.flipDirection.bind(this),
+  actions: Record<string, () => void> = {
+    left: () => this.moveToPreviousCell(),
+    up: () => this.selectPreviousClue(),
+    down: () => this.selectNextClue(),
+    right: () => this.moveToNextCell(),
+    forward: () => this.selectNextClue(),
+    backward: () => this.selectPreviousClue(),
+    backspace: () => this.backspace(),
+    home: () => this.moveToEdge(true),
+    end: () => this.moveToEdge(false),
+    delete: () => this.delete(),
+    tab: () => this.selectNextClue(),
+    space: () => this.flipDirection(),
   };
 
   moveToNextCell() {
@@ -41,8 +41,8 @@ export default class MobileListViewControls extends MobileGridControls {
     this.selectNextClue(true);
   }
 
-  backspace(shouldStay: any): void {
-    if (!this.delete() && !shouldStay) {
+  backspace(): void {
+    if (!this.delete()) {
       const cell = this.moveToPreviousCell();
       if (cell) {
         this.props.updateGrid(cell.r, cell.c, '');
