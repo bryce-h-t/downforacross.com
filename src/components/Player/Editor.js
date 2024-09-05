@@ -1,7 +1,7 @@
 /* eslint react/no-string-refs: "warn" */
 import './css/editor.css';
 import Flex from 'react-flexview';
-import React, {Component} from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import Grid from '../Grid';
 import GridControls from './GridControls';
 import EditableSpan from '../common/EditableSpan';
@@ -52,95 +52,79 @@ window.cancelIdleCallback =
  * - Compose
  * */
 
-export default class Editor extends Component {
-  constructor() {
-    super();
-    this.state = {
-      selected: {
-        r: 0,
-        c: 0,
-      },
-      direction: 'across',
-      frozen: false,
-    };
-    this.prvNum = {};
-    this.prvIdleID = {};
-  }
+const Editor = (props) => {
+  const [selected, setSelected] = useState({ r: 0, c: 0 });
+  const [direction, setDirection] = useState('across');
+  const [frozen, setFrozen] = useState(false);
 
-  get grid() {
-    const grid = new GridObject(this.props.grid);
-    grid.assignNumbers();
-    return grid;
-  }
+  const prvNum = useRef({});
+  const prvIdleID = useRef({});
+
+  const grid = useCallback(() => {
+    const gridObj = new GridObject(props.grid);
+    gridObj.assignNumbers();
+    return gridObj;
+  }, [props.grid]);
 
   /* Callback fns, to be passed to child components */
 
-  canSetDirection = () => true;
+  const canSetDirection = () => true;
 
-  handleSetDirection = (direction) => {
-    this.setState({
-      direction,
-    });
+  const handleSetDirection = (newDirection) => {
+    setDirection(newDirection);
   };
 
-  handleSetSelected = (selected) => {
-    this.setState({
-      selected,
-    });
-    this.props.onUpdateCursor(selected);
+  const handleSetSelected = (newSelected) => {
+    setSelected(newSelected);
+    props.onUpdateCursor(newSelected);
   };
 
-  handleChangeDirection = () => {
-    this.setState((prevState) => ({
-      direction: gameUtils.getOppositeDirection(prevState.direction),
-    }));
+  const handleChangeDirection = () => {
+    setDirection((prevDirection) => gameUtils.getOppositeDirection(prevDirection));
   };
 
-  handleSelectClue = (direction, number) => {
-    this.refs.gridControls.selectClue(direction, number);
+  const handleSelectClue = (direction, number) => {
+    // Note: We need to update this to use a ref or find another way to access gridControls
+    // gridControlsRef.current.selectClue(direction, number);
   };
 
-  handleUpdateGrid = (r, c, value) => {
-    this.props.onUpdateGrid(r, c, value);
-    this.props.onChange();
+  const handleUpdateGrid = (r, c, value) => {
+    props.onUpdateGrid(r, c, value);
+    props.onChange();
   };
 
-  handlePressPeriod = () => {
-    const {selected} = this.state;
-    this.props.onFlipColor(selected.r, selected.c);
-    this.props.onChange();
+  const handlePressPeriod = () => {
+    props.onFlipColor(selected.r, selected.c);
+    props.onChange();
   };
 
-  handleChangeClue = (value) => {
-    const {direction} = this.state;
-    this.props.onUpdateClue(this.selectedParent.r, this.selectedParent.c, direction, value);
-    this.props.onChange();
+  const handleChangeClue = (value) => {
+    props.onUpdateClue(selectedParent.r, selectedParent.c, direction, value);
+    props.onChange();
   };
 
-  handleAutofill = () => {
-    this.props.onAutofill();
+  const handleAutofill = () => {
+    props.onAutofill();
   };
 
-  handlePublish = () => {
-    this.props.onPublish();
+  const handlePublish = () => {
+    props.onPublish();
   };
 
-  handleChangeRows = (event) => {
-    this.props.onChangeRows(event.target.value);
+  const handleChangeRows = (event) => {
+    props.onChangeRows(event.target.value);
   };
 
-  handleChangeColumns = (event) => {
-    this.props.onChangeColumns(event.target.value);
+  const handleChangeColumns = (event) => {
+    props.onChangeColumns(event.target.value);
   };
 
-  handleClearPencil = () => {
-    this.props.onClearPencil();
+  const handleClearPencil = () => {
+    props.onClearPencil();
   };
 
-  handleToggleFreeze = () => {
-    this.setState((prevState) => ({
-      frozen: !prevState.frozen,
-    }));
+  const handleToggleFreeze = () => {
+    setFrozen((prevFrozen) => !prevFrozen);
   };
 
   /* Helper functions used when rendering */
