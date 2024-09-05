@@ -10,14 +10,17 @@ import Hints from '../Compose/Hints';
 import GridObject from '../../lib/wrappers/GridWrapper';
 import * as gameUtils from '../../lib/gameUtils';
 
-interface IdleDeadline {
-  didTimeout: boolean;
-  timeRemaining: () => number;
+interface IdleRequestCallback {
+  (deadline: IdleDeadline): void;
+}
+
+interface IdleRequestOptions {
+  timeout?: number;
 }
 
 declare global {
   interface Window {
-    requestIdleCallback: (callback: (deadline: IdleDeadline) => void, opts?: {timeout: number}) => number;
+    requestIdleCallback: (callback: IdleRequestCallback, options?: IdleRequestOptions) => number;
     cancelIdleCallback: (handle: number) => void;
   }
 }
@@ -314,8 +317,8 @@ export default class Editor extends Component<EditorProps, EditorState> {
             onChangeDirection={this.handleChangeDirection}
             myColor={this.props.myColor}
             references={[]}
-            editMode
-            cellStyle={{}}
+            editMode={true}
+            cellStyle={{}} // TODO: Define proper cellStyle type
           />
         </div>
         <Flex className="editor--button" hAlignContent="center" onClick={this.handleToggleFreeze}>
@@ -338,7 +341,7 @@ export default class Editor extends Component<EditorProps, EditorState> {
             <input
               className="editor--input"
               type="number"
-              defaultValue={this.grid.size}
+              defaultValue={this.grid.size.toString()}
               onChange={this.handleChangeRows}
             />
           </Flex>
@@ -347,7 +350,7 @@ export default class Editor extends Component<EditorProps, EditorState> {
             <input
               className="editor--input"
               type="number"
-              defaultValue={this.grid.size}
+              defaultValue={this.grid.size.toString()}
               onChange={this.handleChangeColumns}
             />
           </Flex>
@@ -357,9 +360,9 @@ export default class Editor extends Component<EditorProps, EditorState> {
   }
 
   renderClueList(dir: 'across' | 'down'): JSX.Element[] {
-    return this.props.clues[dir].map(
-      (clue, i) =>
-        clue !== undefined && (
+    return this.props.clues[dir]
+      .map((clue, i) =>
+        clue !== undefined ? (
           <Flex
             shrink={0}
             key={i}
@@ -370,11 +373,11 @@ export default class Editor extends Component<EditorProps, EditorState> {
                 ? 'half-selected '
                 : ' '
             }editor--main--clues--list--scroll--clue`}
-            ref={
-              this.isClueSelected(dir, i) || this.isClueHalfSelected(dir, i)
-                ? (el: HTMLElement | null) => el && this.scrollToClue(dir, i, el)
-                : undefined
-            }
+            ref={(el: HTMLDivElement | null) => {
+              if (el && (this.isClueSelected(dir, i) || this.isClueHalfSelected(dir, i))) {
+                this.scrollToClue(dir, i, el);
+              }
+            }}
             onClick={() => {
               this.handleSelectClue(dir, i);
             }}
@@ -386,8 +389,9 @@ export default class Editor extends Component<EditorProps, EditorState> {
               {clue}
             </Flex>
           </Flex>
-        )
-    );
+        ) : null
+      )
+      .filter((element): element is JSX.Element => element !== null);
   }
 
   render(): JSX.Element {
