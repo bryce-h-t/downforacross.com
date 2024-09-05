@@ -70,7 +70,7 @@ interface MobileGridControlsProps extends GridControlsProps {
 export default class MobileGridControls extends GridControls {
   state: MobileGridControlsState;
   prvInput: string;
-  inputRef: React.RefObject<HTMLInputElement | HTMLTextAreaElement>;
+  inputRef: React.RefObject<HTMLInputElement>;
   zoomContainer: RefObject<HTMLDivElement>;
   wasUnfocused: number;
   lastTouchMove: number;
@@ -646,9 +646,9 @@ export default class MobileGridControls extends GridControls {
           <textarea name="1" {...inputProps} />
           <textarea
             name="2"
-            ref={this.inputRef as React.RefObject<HTMLTextAreaElement>}
+            ref={this.inputRef as React.RefObject<HTMLInputElement>}
             {...inputProps}
-            onKeyUp={this.handleKeyUp as React.KeyboardEventHandler<HTMLTextAreaElement>}
+            onKeyUp={this.handleKeyUp as React.KeyboardEventHandler<HTMLInputElement>}
           />
           <textarea name="3" {...inputProps} />
         </>
@@ -657,12 +657,7 @@ export default class MobileGridControls extends GridControls {
     return (
       <>
         <input name="1" {...inputProps} />
-        <input
-          name="2"
-          ref={this.inputRef as React.RefObject<HTMLInputElement>}
-          {...inputProps}
-          onKeyUp={this.handleKeyUp as React.KeyboardEventHandler<HTMLInputElement>}
-        />
+        <input name="2" ref={this.inputRef} {...inputProps} onKeyUp={this.handleKeyUp} />
         <input name="3" {...inputProps} />
       </>
     );
