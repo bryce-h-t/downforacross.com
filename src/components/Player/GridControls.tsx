@@ -44,7 +44,7 @@ interface GridControlsState {
 }
 
 export default class GridControls extends Component<GridControlsProps, GridControlsState> {
-  inputRef: RefObject<HTMLInputElement>;
+  inputRef: React.RefObject<HTMLInputElement | HTMLTextAreaElement>;
 
   constructor(props: GridControlsProps) {
     super(props);
