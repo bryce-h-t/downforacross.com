@@ -208,12 +208,12 @@ export default class MobileGridControls extends GridControls {
     });
   };
 
-  handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+  handleTouchStart = (e: TouchEvent) => {
     if (e.touches.length === 2) {
       this.props.onSetCursorLock?.(true);
     }
     this.lastTouchStart = Date.now();
-    this.handleTouchMove(e);
+    this.handleTouchMove(e as React.TouchEvent<HTMLDivElement>);
   };
 
   handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
@@ -286,12 +286,15 @@ export default class MobileGridControls extends GridControls {
     this.keepFocus();
   };
 
-  getTransform(anchors, {scale, translateX, translateY}) {
+  getTransform(
+    anchors: Array<{pixelPosition: {x: number; y: number}; touchPosition: {x: number; y: number}}>,
+    {scale, translateX, translateY}: {scale: number; translateX: number; translateY: number}
+  ): {scale: number; translateX: number; translateY: number} | undefined {
     if (!this.props.enablePan) {
-      return;
+      return undefined;
     }
 
-    const getCenterAndDistance = (point1, point2) => {
+    const getCenterAndDistance = (point1?: {x: number; y: number}, point2?: {x: number; y: number}) => {
       if (!point1) {
         return {
           center: {x: 1, y: 1},
@@ -315,10 +318,10 @@ export default class MobileGridControls extends GridControls {
       };
     };
     const {center: pixelCenter, distance: pixelDistance} = getCenterAndDistance(
-      ..._.map(anchors, ({pixelPosition}) => pixelPosition)
+      ...anchors.map(({pixelPosition}) => pixelPosition)
     );
     const {center: touchCenter, distance: touchDistance} = getCenterAndDistance(
-      ..._.map(anchors, ({touchPosition}) => touchPosition)
+      ...anchors.map(({touchPosition}) => touchPosition)
     );
     if (anchors.length >= 2) {
       scale = touchDistance / pixelDistance;
