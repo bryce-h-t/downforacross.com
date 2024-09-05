@@ -19,6 +19,13 @@ interface GridControlsProps {
   onSetDirection: (direction: string) => void;
   canSetDirection: (direction: string) => boolean;
   onSetSelected: (selected: {r: number; c: number}) => void;
+  clues: {[direction: string]: {[clueNumber: string]: string}};
+  editMode?: boolean;
+  onReveal?: (type: string) => void;
+  onCheck?: (type: string) => void;
+  onPressEnter?: () => void;
+  onPressPeriod?: () => void;
+  onPressEscape?: () => void;
 }
 
 interface GridControlsState {
@@ -150,29 +157,31 @@ export default class GridControls extends Component<GridControlsProps, GridContr
     this.actions[action](shiftKey);
   }
 
-  handleAltKey(key, shiftKey) {
+  handleAltKey(key: string, shiftKey: boolean): void {
     key = key.toLowerCase();
     const altAction = shiftKey ? this.props.onReveal : this.props.onCheck;
-    if (key === 's') {
-      altAction('square');
-    }
-    if (key === 'w') {
-      altAction('word');
-    }
-    if (key === 'p') {
-      altAction('puzzle');
+    if (altAction) {
+      if (key === 's') {
+        altAction('square');
+      }
+      if (key === 'w') {
+        altAction('word');
+      }
+      if (key === 'p') {
+        altAction('puzzle');
+      }
     }
   }
 
-  validLetter(letter) {
+  validLetter(letter: string): boolean {
     const VALID_SYMBOLS = '!@#$%^&*()-+=`~/?\\'; // special theme puzzles have these sometimes;
     if (VALID_SYMBOLS.indexOf(letter) !== -1) return true;
-    return letter.match(/^[A-Z0-9]$/);
+    return letter.match(/^[A-Z0-9]$/) !== null;
   }
 
   // takes in key, a string
-  _handleKeyDown = (key, shiftKey, altKey) => {
-    const actionKeys = {
+  _handleKeyDown = (key: string, shiftKey: boolean, altKey: boolean): boolean => {
+    const actionKeys: {[key: string]: string} = {
       ArrowLeft: 'left',
       ArrowUp: 'up',
       ArrowDown: 'down',
@@ -220,6 +229,7 @@ export default class GridControls extends Component<GridControlsProps, GridContr
         return true;
       }
     }
+    return false;
   };
 
   _handleKeyDownVim = (key, shiftKey, altKey) => {
