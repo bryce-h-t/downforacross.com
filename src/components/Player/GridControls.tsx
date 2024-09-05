@@ -58,7 +58,7 @@ export default class GridControls extends Component<GridControlsProps, GridContr
     end: this.moveToEdge(false).bind(this),
     backspace: this.backspace.bind(this),
     delete: this.delete.bind(this),
-    tab: this.selectNextClue.bind(this),
+    tab: (shiftKey?: boolean) => this.selectNextClue(shiftKey || false),
     space: this.flipDirection.bind(this),
   };
 
@@ -239,8 +239,8 @@ export default class GridControls extends Component<GridControlsProps, GridContr
     return false;
   };
 
-  _handleKeyDownVim = (key, shiftKey, altKey) => {
-    const actionKeys = {
+  _handleKeyDownVim = (key: string, shiftKey: boolean, altKey: boolean): boolean => {
+    const actionKeys: {[key: string]: string} = {
       ArrowLeft: 'left',
       ArrowUp: 'up',
       ArrowDown: 'down',
@@ -256,7 +256,7 @@ export default class GridControls extends Component<GridControlsProps, GridContr
       End: 'end',
     };
 
-    const normalModeActionKeys = {
+    const normalModeActionKeys: {[key: string]: string} = {
       h: 'left',
       j: 'down',
       k: 'up',
@@ -268,7 +268,7 @@ export default class GridControls extends Component<GridControlsProps, GridContr
 
     const {onVimNormal, onVimInsert, vimInsert, onPressEnter, onPressPeriod} = this.props;
     if (key in actionKeys) {
-      this.handleAction(actionKeys[key], shiftKey);
+      this.handleAction(actionKeys[key as keyof typeof actionKeys], shiftKey);
       return true;
     }
     if (altKey) {
@@ -277,7 +277,7 @@ export default class GridControls extends Component<GridControlsProps, GridContr
     }
     if (!vimInsert) {
       if (key in normalModeActionKeys) {
-        this.handleAction(normalModeActionKeys[key], shiftKey);
+        this.handleAction(normalModeActionKeys[key as keyof typeof normalModeActionKeys], shiftKey);
       } else if (key === 'w') {
         this.selectNextClue(false);
       } else if (key === 'b') {
@@ -303,6 +303,7 @@ export default class GridControls extends Component<GridControlsProps, GridContr
         return true;
       }
     }
+    return false;
   };
 
   handleClick(ev) {
