@@ -39,6 +39,7 @@ interface GridControlsProps {
   onVimNormal?: () => void;
   onVimInsert?: () => void;
   vimInsert?: boolean;
+  enableDebug?: boolean;
 }
 
 interface MobileGridControlsState extends GridControlsState {
@@ -62,7 +63,6 @@ interface MobileGridControlsProps extends GridControlsProps {
   onSetCursorLock: (lock: boolean) => void;
   onChangeDirection: () => void;
   enablePan: boolean;
-  enableDebug?: boolean;
   children: React.ReactNode;
   size: number;
 }
@@ -70,7 +70,7 @@ interface MobileGridControlsProps extends GridControlsProps {
 export default class MobileGridControls extends GridControls {
   state: MobileGridControlsState;
   prvInput: string;
-  inputRef: RefObject<HTMLInputElement>;
+  inputRef: React.RefObject<HTMLInputElement | HTMLTextAreaElement>;
   zoomContainer: RefObject<HTMLDivElement>;
   wasUnfocused: number;
   lastTouchMove: number;
@@ -616,8 +616,8 @@ export default class MobileGridControls extends GridControls {
     }
   };
 
-  handleKeyUp = (ev: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    this.setState({dbgstr: `[${(ev.target as HTMLTextAreaElement).value}]`});
+  handleKeyUp = (ev: React.KeyboardEvent<HTMLTextAreaElement | HTMLInputElement>) => {
+    this.setState({dbgstr: `[${(ev.target as HTMLTextAreaElement | HTMLInputElement).value}]`});
   };
 
   renderMobileInputs() {
@@ -659,7 +659,7 @@ export default class MobileGridControls extends GridControls {
         <input name="1" {...inputProps} />
         <input
           name="2"
-          ref={this.inputRef}
+          ref={this.inputRef as React.RefObject<HTMLInputElement>}
           {...inputProps}
           onKeyUp={this.handleKeyUp as React.KeyboardEventHandler<HTMLInputElement>}
         />
