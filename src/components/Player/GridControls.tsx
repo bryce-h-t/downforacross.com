@@ -230,7 +230,8 @@ export default class GridControls extends Component<GridControlsProps, GridContr
   }
 
   _handleKeyDownVim = (key: string, shiftKey: boolean, altKey: boolean): boolean => {
-    const normalModeActionKeys: {[key: string]: keyof typeof this.actions} = {
+    type ActionKey = keyof typeof this.actions;
+    const normalModeActionKeys: Record<string, ActionKey> = {
       h: 'left',
       j: 'down',
       k: 'up',
@@ -243,8 +244,11 @@ export default class GridControls extends Component<GridControlsProps, GridContr
     const {onVimNormal, onVimInsert, vimInsert} = this.props;
     if (!vimInsert) {
       if (key in normalModeActionKeys) {
-        this.actions[normalModeActionKeys[key]]();
-        return true;
+        const action = normalModeActionKeys[key];
+        if (action in this.actions) {
+          this.actions[action]();
+          return true;
+        }
       } else if (key === 'w') {
         this.selectNextClue(false);
         return true;
