@@ -44,18 +44,20 @@ export default class GridControls extends Component<GridControlsProps, GridContr
   }
 
   actions: Record<string, () => void> = {
-    left: () => this.setDirectionWithCallback('across', () => this.moveSelectedBy(0, -1))(),
-    up: () => this.setDirectionWithCallback('down', () => this.moveSelectedBy(-1, 0))(),
-    down: () => this.setDirectionWithCallback('down', () => this.moveSelectedBy(1, 0))(),
-    right: () => this.setDirectionWithCallback('across', () => this.moveSelectedBy(0, 1))(),
-    forward: () => this.moveSelectedUsingDirection(1),
-    backward: () => this.moveSelectedUsingDirection(-1),
-    home: () => this.moveToEdge(true),
-    end: () => this.moveToEdge(false),
-    backspace: () => this.backspace(),
-    delete: () => this.delete(),
-    tab: () => this.selectNextClue(),
-    space: () => this.flipDirection(),
+    left: (): void => this.setDirectionWithCallback('across', () => this.moveSelectedBy(0, -1))(),
+    up: (): void => this.setDirectionWithCallback('down', () => this.moveSelectedBy(-1, 0))(),
+    down: (): void => this.setDirectionWithCallback('down', () => this.moveSelectedBy(1, 0))(),
+    right: (): void => this.setDirectionWithCallback('across', () => this.moveSelectedBy(0, 1))(),
+    forward: (): void => this.moveSelectedUsingDirection(1),
+    backward: (): void => this.moveSelectedUsingDirection(-1),
+    home: (): void => this.moveToEdge(true),
+    end: (): void => this.moveToEdge(false),
+    backspace: (): void => this.backspace(),
+    delete: (): void => {
+      this.delete();
+    },
+    tab: (): void => this.selectNextClue(),
+    space: (): void => this.flipDirection(),
   };
 
   get grid(): GridObject {
@@ -256,11 +258,11 @@ export default class GridControls extends Component<GridControlsProps, GridContr
         this.selectNextClue(true);
         return true;
       } else if (key === 'i') {
-        onVimInsert && onVimInsert();
+        onVimInsert?.();
         return true;
       } else if (key === 's') {
         this.delete();
-        onVimInsert && onVimInsert();
+        onVimInsert?.();
         return true;
       }
     } else {
