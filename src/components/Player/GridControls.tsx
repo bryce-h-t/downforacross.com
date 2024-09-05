@@ -33,6 +33,10 @@ interface GridControlsProps {
   onVimNormal?: () => void;
   onVimInsert?: () => void;
   vimInsert?: boolean;
+  enableClueBarGestures?: boolean;
+  onSetCursorLock?: (lock: boolean) => void;
+  onChangeDirection?: () => void;
+  enablePan?: boolean;
 }
 
 interface GridControlsState {
