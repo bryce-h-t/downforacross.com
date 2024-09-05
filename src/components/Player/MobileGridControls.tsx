@@ -208,12 +208,12 @@ export default class MobileGridControls extends GridControls {
     });
   };
 
-  handleTouchStart = (e: TouchEvent) => {
+  handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
     if (e.touches.length === 2) {
       this.props.onSetCursorLock?.(true);
     }
     this.lastTouchStart = Date.now();
-    this.handleTouchMove(e as React.TouchEvent<HTMLDivElement>);
+    this.handleTouchMove(e);
   };
 
   handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
@@ -410,12 +410,12 @@ export default class MobileGridControls extends GridControls {
           flexBasis: 1,
         }}
         className="mobile-grid-controls--grid-content"
-        ref={(e) => {
+        ref={(e: HTMLDivElement | null) => {
           if (!e) return;
-          e.addEventListener('touchstart', this.handleTouchStart, {passive: false});
-          e.addEventListener('touchmove', this.handleTouchMove, {passive: false});
-          e.addEventListener('touchend', this.handleTouchEnd, {passive: false});
-          // e.addEventListener('mouseup', this.handleTouchEnd, {passive: false});
+          e.addEventListener('touchstart', this.handleTouchStart as EventListener, {passive: false});
+          e.addEventListener('touchmove', this.handleTouchMove as EventListener, {passive: false});
+          e.addEventListener('touchend', this.handleTouchEnd as EventListener, {passive: false});
+          // e.addEventListener('mouseup', this.handleTouchEnd as EventListener, {passive: false});
         }}
       >
         <div
