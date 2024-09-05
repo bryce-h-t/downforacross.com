@@ -43,11 +43,11 @@ export default class GridControls extends Component<GridControlsProps, GridContr
     this.inputRef = React.createRef();
   }
 
-  actions = {
-    left: this.setDirectionWithCallback('across', () => this.moveSelectedBy(0, -1)),
-    up: this.setDirectionWithCallback('down', () => this.moveSelectedBy(-1, 0)),
-    down: this.setDirectionWithCallback('down', () => this.moveSelectedBy(1, 0)),
-    right: this.setDirectionWithCallback('across', () => this.moveSelectedBy(0, 1)),
+  actions: Record<string, () => void> = {
+    left: () => this.setDirectionWithCallback('across', () => this.moveSelectedBy(0, -1))(),
+    up: () => this.setDirectionWithCallback('down', () => this.moveSelectedBy(-1, 0))(),
+    down: () => this.setDirectionWithCallback('down', () => this.moveSelectedBy(1, 0))(),
+    right: () => this.setDirectionWithCallback('across', () => this.moveSelectedBy(0, 1))(),
     forward: () => this.moveSelectedUsingDirection(1),
     backward: () => this.moveSelectedUsingDirection(-1),
     home: () => this.moveToEdge(true),
@@ -270,7 +270,7 @@ export default class GridControls extends Component<GridControlsProps, GridContr
   };
 
   _handleKeyDown = (key: string, shiftKey: boolean, altKey: boolean): boolean => {
-    const actionKeys: {[key: string]: keyof typeof this.actions} = {
+    const actionKeys: Record<string, keyof typeof this.actions> = {
       ArrowLeft: 'left',
       ArrowUp: 'up',
       ArrowDown: 'down',
@@ -288,15 +288,18 @@ export default class GridControls extends Component<GridControlsProps, GridContr
     const {onPressEnter, onPressPeriod, onPressEscape} = this.props;
 
     if (key in actionKeys) {
-      this.actions[actionKeys[key]]();
-      return true;
+      const action = actionKeys[key];
+      if (action in this.actions) {
+        this.actions[action]();
+        return true;
+      }
     }
     if (key === '.') {
-      onPressPeriod && onPressPeriod();
+      onPressPeriod?.();
       return true;
     }
     if (key === 'Enter') {
-      onPressEnter && onPressEnter();
+      onPressEnter?.();
       return true;
     }
     if (altKey) {
@@ -304,7 +307,7 @@ export default class GridControls extends Component<GridControlsProps, GridContr
       return true;
     }
     if (key === 'Escape') {
-      onPressEscape && onPressEscape();
+      onPressEscape?.();
       return true;
     }
     if (!this.props.frozen) {
