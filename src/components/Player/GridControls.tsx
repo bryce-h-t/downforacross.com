@@ -273,7 +273,8 @@ export default class GridControls extends Component<GridControlsProps, GridContr
   };
 
   _handleKeyDown = (key: string, shiftKey: boolean, altKey: boolean): boolean => {
-    const actionKeys: Record<string, keyof typeof this.actions> = {
+    const actions = this.actions; // Create a local reference to this.actions
+    const actionKeys: Record<string, keyof typeof actions> = {
       ArrowLeft: 'left',
       ArrowUp: 'up',
       ArrowDown: 'down',
@@ -292,8 +293,8 @@ export default class GridControls extends Component<GridControlsProps, GridContr
 
     if (key in actionKeys) {
       const action = actionKeys[key as keyof typeof actionKeys];
-      if (action in this.actions) {
-        this.actions[action]();
+      if (action in actions) {
+        actions[action]();
         return true;
       }
     }
