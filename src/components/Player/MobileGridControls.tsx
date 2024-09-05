@@ -276,7 +276,7 @@ export default class MobileGridControls extends GridControls {
 
   handleRightArrowTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
     e.preventDefault();
-    this.handleAction('tab');
+    this.handleAction('tab', false);
     this.keepFocus();
   };
 
