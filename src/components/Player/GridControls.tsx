@@ -306,17 +306,20 @@ export default class GridControls extends Component<GridControlsProps, GridContr
     return false;
   };
 
-  handleClick(ev) {
+  handleClick(ev: React.MouseEvent<HTMLDivElement>) {
     ev.preventDefault();
     this.focus();
   }
 
   // takes in a Keyboard Event
-  handleKeyDown(ev) {
+  handleKeyDown(ev: React.KeyboardEvent<HTMLDivElement>) {
     const {vimMode} = this.props;
     const _handleKeyDown = vimMode ? this._handleKeyDownVim : this._handleKeyDown;
 
-    if (ev.target !== this.inputRef && (ev.tagName === 'INPUT' || ev.metaKey || ev.ctrlKey)) {
+    if (
+      ev.target !== this.inputRef.current &&
+      (ev.target instanceof HTMLInputElement || ev.metaKey || ev.ctrlKey)
+    ) {
       return;
     }
     if (_handleKeyDown(ev.key, ev.shiftKey, ev.altKey)) {
@@ -371,7 +374,9 @@ export default class GridControls extends Component<GridControlsProps, GridContr
     }
   }
 
-  typeLetter(letter, isRebus, {nextClueIfFilled} = {}) {
+  private nextTime: number | null = null;
+
+  typeLetter(letter: string, isRebus: boolean, {nextClueIfFilled}: {nextClueIfFilled?: boolean} = {}): void {
     if (this.props.beta) {
       return this.typeLetterSync(letter, isRebus, {nextClueIfFilled});
     }
@@ -388,7 +393,11 @@ export default class GridControls extends Component<GridControlsProps, GridContr
     this.nextTime = Math.max(this.nextTime, Date.now()) + 30;
   }
 
-  typeLetterSync(letter, isRebus, {nextClueIfFilled} = {}) {
+  typeLetterSync(
+    letter: string,
+    isRebus: boolean,
+    {nextClueIfFilled}: {nextClueIfFilled?: boolean} = {}
+  ): void {
     if (letter === '/') isRebus = true;
     const {r, c} = this.props.selected;
     const value = this.props.grid[r][c].value;
