@@ -53,6 +53,8 @@ interface MobileGridControlsState extends GridControlsState {
   lastFitOnScreen?: number;
   previousGesture?: {x?: number; y?: number};
   previousClue?: {clueNumber: string; direction: string};
+  touchingClueBarStart: Touch | null;
+  touchingClueBarCurrent: Touch | null;
 }
 
 interface MobileGridControlsProps extends GridControlsProps {
