@@ -616,12 +616,13 @@ export default class MobileGridControls extends GridControls {
     }
   };
 
-  handleKeyUp = (ev) => {
-    this.setState({dbgstr: `[${ev.target.value}]`});
+  handleKeyUp = (ev: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    this.setState({dbgstr: `[${(ev.target as HTMLTextAreaElement).value}]`});
   };
 
   renderMobileInputs() {
-    const inputProps = {
+    const inputProps: React.TextareaHTMLAttributes<HTMLTextAreaElement> &
+      React.InputHTMLAttributes<HTMLInputElement> = {
       value: '$', // This resets the input to contain just "$" on every render.
       type: 'email',
       style: {
@@ -629,10 +630,10 @@ export default class MobileGridControls extends GridControls {
         width: 0,
         height: 0,
         pointerEvents: 'none',
-        touchEvents: 'none',
+        touchAction: 'none',
         position: 'absolute',
       },
-      autoComplete: 'none',
+      autoComplete: 'off',
       autoCapitalize: 'none',
       onBlur: this.handleInputBlur,
       onFocus: this.handleInputFocus,
@@ -643,7 +644,12 @@ export default class MobileGridControls extends GridControls {
       return (
         <>
           <textarea name="1" {...inputProps} />
-          <textarea name="2" ref={this.inputRef} {...inputProps} onKeyUp={this.handleKeyUp} />
+          <textarea
+            name="2"
+            ref={this.inputRef as React.RefObject<HTMLTextAreaElement>}
+            {...inputProps}
+            onKeyUp={this.handleKeyUp as React.KeyboardEventHandler<HTMLTextAreaElement>}
+          />
           <textarea name="3" {...inputProps} />
         </>
       );
@@ -651,7 +657,12 @@ export default class MobileGridControls extends GridControls {
     return (
       <>
         <input name="1" {...inputProps} />
-        <input name="2" ref={this.inputRef} {...inputProps} onKeyUp={this.handleKeyUp} />
+        <input
+          name="2"
+          ref={this.inputRef}
+          {...inputProps}
+          onKeyUp={this.handleKeyUp as React.KeyboardEventHandler<HTMLInputElement>}
+        />
         <input name="3" {...inputProps} />
       </>
     );
