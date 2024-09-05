@@ -56,7 +56,7 @@ export default class GridControls extends Component<GridControlsProps, GridContr
     backward: this.moveSelectedUsingDirection(-1).bind(this),
     home: this.moveToEdge(true).bind(this),
     end: this.moveToEdge(false).bind(this),
-    backspace: this.backspace.bind(this),
+    backspace: (shiftKey?: boolean) => this.backspace(!!shiftKey),
     delete: this.delete.bind(this),
     tab: (shiftKey?: boolean) => this.selectNextClue(shiftKey || false),
     space: this.flipDirection.bind(this),
@@ -430,20 +430,20 @@ export default class GridControls extends Component<GridControlsProps, GridContr
     return this.grid.isGridFilled();
   }
 
-  setDirection(direction) {
+  setDirection(direction: string): void {
     this.props.onSetDirection(direction);
   }
 
-  canSetDirection(direction) {
+  canSetDirection(direction: string): boolean {
     return this.props.canSetDirection(direction);
   }
 
-  setSelected(selected) {
+  setSelected(selected: {r: number; c: number}): void {
     this.props.onSetSelected(selected);
   }
 
   focus() {
-    this.inputRef.current.focus({preventScroll: true});
+    this.inputRef.current?.focus({preventScroll: true});
   }
 
   render() {
@@ -466,7 +466,7 @@ export default class GridControls extends Component<GridControlsProps, GridContr
       <div
         ref="gridControls"
         className="grid-controls"
-        tabIndex="1"
+        tabIndex={1}
         onClick={this.handleClick.bind(this)}
         onKeyDown={this.handleKeyDown.bind(this)}
         {...gridProps}
