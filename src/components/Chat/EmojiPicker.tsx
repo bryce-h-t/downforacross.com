@@ -40,24 +40,27 @@ interface EmojiMatch {
 const Kbd: React.FC<KbdProps> = ({children}) => <kbd>{children}</kbd>;
 
 export default class EmojiPicker extends Component<EmojiPickerProps, EmojiPickerState> {
-  constructor() {
-    super();
+  private emojiRefs: Record<string, RefObject<HTMLSpanElement>> = {};
+  private listContainer: RefObject<HTMLDivElement>;
+
+  constructor(props: EmojiPickerProps) {
+    super(props);
     this.state = {
       selectedEmoji: null,
     };
-
-    this.emojiRefs = {};
-    this.listContainer = React.createRef();
+    this.listContainer = React.createRef<HTMLDivElement>();
   }
 
-  static getDerivedStateFromProps(nextProps, prevState) {
+  static getDerivedStateFromProps(
+    nextProps: EmojiPickerProps,
+    prevState: EmojiPickerState
+  ): Partial<EmojiPickerState> {
     let {selectedEmoji} = prevState;
     const {matches} = nextProps;
     if (!selectedEmoji || matches.indexOf(selectedEmoji) === -1) {
       selectedEmoji = matches[0];
     }
     return {
-      ...prevState,
       selectedEmoji,
     };
   }
@@ -72,7 +75,7 @@ export default class EmojiPicker extends Component<EmojiPickerProps, EmojiPicker
     window.removeEventListener('keydown', this.handleKeyDown);
   }
 
-  getDomPosition(emoji) {
+  getDomPosition(emoji: string): DOMPosition | null {
     const ref = this.emojiRefs[emoji];
     if (!ref || !ref.current) return null;
     const el = ref.current;
@@ -112,14 +115,16 @@ export default class EmojiPicker extends Component<EmojiPickerProps, EmojiPicker
     }
   }
 
-  handleMouseDown = (e) => {
-    this.props.onConfirm(this.state.selectedEmoji);
+  handleMouseDown = (e: MouseEvent): void => {
+    if (this.state.selectedEmoji) {
+      this.props.onConfirm(this.state.selectedEmoji);
+    }
     e.preventDefault();
     e.stopPropagation();
   };
 
-  handleMouseEnterSpan = (e) => {
-    const emoji = e.target.getAttribute('data-emoji');
+  handleMouseEnterSpan = (e: MouseEvent<HTMLSpanElement>): void => {
+    const emoji = e.currentTarget.getAttribute('data-emoji');
     if (emoji) {
       this.selectEmoji(emoji);
     }
