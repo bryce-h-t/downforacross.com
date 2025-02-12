@@ -1,11 +1,12 @@
 import * as React from 'react';
+import EmojiPicker from './EmojiPicker';
+import * as emojiLib from '../../lib/emoji';
+
 type ReactNode = React.ReactNode;
 type RefObject<T> = React.RefObject<T>;
 type KeyboardEvent = React.KeyboardEvent;
 type ChangeEvent = React.ChangeEvent;
 type CSSProperties = React.CSSProperties;
-import EmojiPicker from './EmojiPicker';
-import * as emojiLib from '../../lib/emoji';
 
 interface ChatBarProps {
   mobile?: boolean;

@@ -1,13 +1,25 @@
 import * as React from 'react';
+import _ from 'lodash';
+import Flex from 'react-flexview';
+import Linkify from 'react-linkify';
+import {Link} from 'react-router-dom';
+import {MdClose} from 'react-icons/md';
+
+import './css/index.css';
+import Emoji from '../common/Emoji';
+import * as emojiLib from '../../lib/emoji';
+import nameGenerator, {isFromNameGenerator} from '../../lib/nameGenerator';
+import ChatBar from './ChatBar';
+import EditableSpan from '../common/EditableSpan';
+import MobileKeyboard from '../Player/MobileKeyboard';
+import ColorPicker from './ColorPicker';
+import {formatMilliseconds} from '../Toolbar/Clock';
+
 type ReactNode = React.ReactNode;
 type RefObject<T> = React.RefObject<T>;
 type KeyboardEvent = React.KeyboardEvent;
 type ChangeEvent = React.ChangeEvent;
 type CSSProperties = React.CSSProperties;
-import _ from 'lodash';
-import Flex from 'react-flexview';
-import Linkify from 'react-linkify';
-import {Link} from 'react-router-dom';
 import {MdClose} from 'react-icons/md';
 
 import './css/index.css';
