@@ -12,7 +12,6 @@ import ChatBar from './ChatBar';
 import EditableSpan from '../common/EditableSpan';
 import MobileKeyboard from '../Player/MobileKeyboard';
 import ColorPicker from './ColorPicker';
-import type {ChatProps, ChatState, ChatMessage, ChatData} from './types';
 import {formatMilliseconds} from '../Toolbar/Clock';
 import {ChatProps, ChatState, ChatMessage, ChatData} from './types';
 
@@ -30,8 +29,8 @@ export default class Chat extends Component<ChatProps, ChatState> {
     this.state = {
       username: '',
     };
-    this.chatBar = React.createRef();
-    this.usernameInput = React.createRef();
+    this.chatBar = React.createRef<ChatBar>();
+    this.usernameInput = React.createRef<EditableSpan>();
   }
 
   componentDidMount(): void {
