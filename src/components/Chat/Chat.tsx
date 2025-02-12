@@ -1,8 +1,16 @@
 import './css/index.css';
-import React, { RefObject } from 'react';
+import React, { RefObject, Component } from 'react';
 import _ from 'lodash';
 import Flex from 'react-flexview';
 import Linkify from 'react-linkify';
+
+declare module 'react' {
+  interface HTMLAttributes<T> {
+    vAlignContent?: string;
+    grow?: number;
+    shrink?: number;
+  }
+}
 import {Link} from 'react-router-dom';
 import {MdClose} from 'react-icons/md';
 import Emoji from '../common/Emoji';
@@ -96,11 +104,10 @@ const isEmojis = (str: string): boolean => {
   return !res;
 };
 
-export default class Chat extends React.Component<ChatProps, ChatState> {
+export default class Chat extends Component<ChatProps, ChatState> {
   private chatBar: RefObject<ChatBar>;
   private usernameInput: RefObject<EditableSpan>;
-  declare readonly state: Readonly<ChatState>;
-  declare readonly props: Readonly<ChatProps>;
+  state: ChatState;
   constructor(props: ChatProps) {
     super(props);
     this.state = {
@@ -153,9 +160,9 @@ export default class Chat extends React.Component<ChatProps, ChatState> {
   };
 
   handleUpdateColor = (color?: string): void => {
-    color = color || this.props.myColor;
+    const finalColor = color || this.props.myColor || '';
     const {id} = this.props;
-    this.props.onUpdateColor(id, color);
+    this.props.onUpdateColor(id, finalColor);
   };
 
   handleUnfocus = () => {
@@ -219,7 +226,7 @@ export default class Chat extends React.Component<ChatProps, ChatState> {
     }
 
     const getMessages = (data: { messages?: Message[] }, isOpponent: boolean): Message[] => 
-      _.map(data.messages, (message) => ({...message, isOpponent}));
+      _.map(data.messages || [], (message: Message) => ({...message, isOpponent}));
 
     const messages = _.concat(getMessages(data, false), getMessages(opponentData, true));
 
