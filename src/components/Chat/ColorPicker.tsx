@@ -1,13 +1,13 @@
 import React from 'react';
 import {useToggle} from 'react-use';
 import {CirclePicker} from 'react-color';
-import {makeStyles} from '@material-ui/core';
+import {makeStyles, Theme} from '@material-ui/core';
 
 interface ColorPickerProps {
   color: string;
   onUpdateColor: (color: string) => void;
 }
-const useStyles = makeStyles<any, ColorPickerProps>({
+const useStyles = makeStyles<Theme, ColorPickerProps>({
   clickableDot: {
     color: (props) => props.color,
     cursor: 'pointer',
@@ -26,7 +26,7 @@ const ColorPicker: React.FC<ColorPickerProps> = (props) => {
         <>
           <CirclePicker
             color={props.color}
-            onChangeComplete={(color) => {
+            onChangeComplete={(color: {hsl: {h: number; s: number; l: number}}) => {
               const colorHSL = `hsl(${Math.floor(color.hsl.h)},${Math.floor(color.hsl.s * 100)}%,${Math.floor(
                 color.hsl.l * 100
               )}%)`;
