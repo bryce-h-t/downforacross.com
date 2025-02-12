@@ -102,8 +102,8 @@ export default class Chat extends Component<ChatProps, ChatState> {
     messages: [],
     isVisible: false,
   };
-  private chatBar: React.RefObject<ChatBar>;
-  private usernameInput: React.RefObject<EditableSpan>;
+  private chatBar: RefObject<ChatBar>;
+  private usernameInput: RefObject<EditableSpan>;
   declare readonly state: ChatState;
 
   constructor(props: ChatProps) {
