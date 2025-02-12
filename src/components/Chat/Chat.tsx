@@ -110,8 +110,8 @@ export default class Chat extends React.Component<ChatProps, ChatState> {
     this.usernameInput = React.createRef<EditableSpan>();
   }
 
-  componentDidMount() {
-    let username = this.props.initialUsername;
+  componentDidMount(): void {
+    let username = this.props.initialUsername || '';
     const battleName = localStorage.getItem(`battle_${this.props.bid}`);
     // HACK
     if (battleName && !username) {
@@ -180,26 +180,30 @@ export default class Chat extends React.Component<ChatProps, ChatState> {
     return `${this.serverUrl}/beta${this.props.path}`;
   }
 
-  handleCopyClick = () => {
+  handleCopyClick = (): void => {
     navigator.clipboard.writeText(this.url);
     // `${window.location.host}/beta${this.props.path}`);
-    let link = document.getElementById('pathText');
-    link.classList.remove('flashBlue');
-    void link.offsetWidth;
-    link.classList.add('flashBlue');
+    const link = document.getElementById('pathText');
+    if (link) {
+      link.classList.remove('flashBlue');
+      void link.offsetWidth;
+      link.classList.add('flashBlue');
+    }
   };
 
-  handleShareScoreClick = () => {
+  handleShareScoreClick = (): void => {
     const text = `${Object.keys(this.props.users).length > 1 ? 'We' : 'I'} solved ${
       this.props.game.info.title
     } in ${formatMilliseconds(this.props.game.clock.totalTime)}!\n\n${this.serverUrl}/beta/play/${
       this.props.game.pid
     }`;
     navigator.clipboard.writeText(text);
-    let link = document.getElementById('shareText');
-    link.classList.remove('flashBlue');
-    void link.offsetWidth;
-    link.classList.add('flashBlue');
+    const link = document.getElementById('shareText');
+    if (link) {
+      link.classList.remove('flashBlue');
+      void link.offsetWidth;
+      link.classList.add('flashBlue');
+    }
   };
 
   focus = () => {
@@ -344,7 +348,7 @@ export default class Chat extends React.Component<ChatProps, ChatState> {
     );
   }
 
-  renderMessageTimestamp(timestamp) {
+  renderMessageTimestamp(timestamp: number): React.ReactNode {
     return (
       <span className="chat--message--timestamp">
         {new Date(timestamp).toLocaleTimeString([], {hour: 'numeric', minute: '2-digit'})}
@@ -352,7 +356,7 @@ export default class Chat extends React.Component<ChatProps, ChatState> {
     );
   }
 
-  renderMessageSender(name, color) {
+  renderMessageSender(name: string, color?: string): React.ReactNode {
     const style = color && {
       color,
     };
