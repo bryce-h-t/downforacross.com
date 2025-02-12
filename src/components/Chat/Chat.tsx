@@ -1,18 +1,12 @@
-import './css/index.css';
-import React, { RefObject, Component } from 'react';
+import React from 'react';
+import type { RefObject, Component } from 'react';
 import _ from 'lodash';
 import Flex from 'react-flexview';
 import Linkify from 'react-linkify';
-
-declare module 'react' {
-  interface HTMLAttributes<T> {
-    vAlignContent?: string;
-    grow?: number;
-    shrink?: number;
-  }
-}
 import {Link} from 'react-router-dom';
 import {MdClose} from 'react-icons/md';
+
+import './css/index.css';
 import Emoji from '../common/Emoji';
 import * as emojiLib from '../../lib/emoji';
 import nameGenerator, {isFromNameGenerator} from '../../lib/nameGenerator';
@@ -104,10 +98,14 @@ const isEmojis = (str: string): boolean => {
   return !res;
 };
 
-export default class Chat extends Component<ChatProps, ChatState> {
+export default class Chat extends React.Component<ChatProps, ChatState> {
   private chatBar: RefObject<ChatBar>;
   private usernameInput: RefObject<EditableSpan>;
   state: ChatState;
+  static defaultProps = {
+    messages: [],
+    isVisible: false,
+  };
   constructor(props: ChatProps) {
     super(props);
     this.state = {
