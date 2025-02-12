@@ -1,15 +1,44 @@
-/* eslint react/no-unescaped-entities: "warn" */
 import React from 'react';
-
 import Flex from 'react-flexview';
 import _ from 'lodash';
 import Emoji from '../common/Emoji';
 
-const Kbd = ({children}) => <kbd>{children}</kbd>;
+interface EmojiPickerProps {
+  pattern?: string;
+  matches: string[];
+  disableKeyListener?: boolean;
+  onConfirm: (emoji: string) => void;
+  onEscape: () => void;
+  onSelectEmoji?: (emoji: string) => void;
+}
 
-export default class EmojiPicker extends React.Component {
-  constructor() {
-    super();
+interface EmojiPickerState {
+  selectedEmoji: string | null;
+}
+
+interface EmojiPosition {
+  left: number;
+  right: number;
+  cx: number;
+  cy: number;
+}
+
+interface EmojiMatch {
+  emoji: string;
+  pagey: number;
+  dy: number;
+  pagex: number;
+  dx: number;
+}
+
+const Kbd: React.FC<{children: React.ReactNode}> = ({children}) => <kbd>{children}</kbd>;
+
+export default class EmojiPicker extends React.Component<EmojiPickerProps, EmojiPickerState> {
+  private emojiRefs: {[key: string]: React.RefObject<HTMLSpanElement>};
+  private listContainer: React.RefObject<HTMLDivElement>;
+
+  constructor(props: EmojiPickerProps) {
+    super(props);
     this.state = {
       selectedEmoji: null,
     };
@@ -18,29 +47,28 @@ export default class EmojiPicker extends React.Component {
     this.listContainer = React.createRef();
   }
 
-  static getDerivedStateFromProps(nextProps, prevState) {
+  static getDerivedStateFromProps(nextProps: EmojiPickerProps, prevState: EmojiPickerState): Partial<EmojiPickerState> {
     let {selectedEmoji} = prevState;
     const {matches} = nextProps;
     if (!selectedEmoji || matches.indexOf(selectedEmoji) === -1) {
       selectedEmoji = matches[0];
     }
     return {
-      ...prevState,
       selectedEmoji,
     };
   }
 
-  componentDidMount() {
+  componentDidMount(): void {
     if (this.props.disableKeyListener) return;
     window.addEventListener('keydown', this.handleKeyDown);
   }
 
-  componentWillUnmount() {
+  componentWillUnmount(): void {
     if (this.props.disableKeyListener) return;
     window.removeEventListener('keydown', this.handleKeyDown);
   }
 
-  getDomPosition(emoji) {
+  getDomPosition(emoji: string): EmojiPosition | null {
     const ref = this.emojiRefs[emoji];
     if (!ref || !ref.current) return null;
     const el = ref.current;
@@ -53,13 +81,17 @@ export default class EmojiPicker extends React.Component {
     };
   }
 
-  scrollEmojiIntoView(emoji) {
+  scrollEmojiIntoView(emoji: string): void {
     // HACK: hardcoding container's padding here
     const padding = 5;
     const span = this.emojiRefs[emoji].current;
+    if (!span) return;
+    
     const top = span.offsetTop;
     const bottom = top + span.offsetHeight;
     const container = this.listContainer.current;
+    if (!container) return;
+
     const containerHeight = container.getBoundingClientRect().height - 2 * padding;
     const scrollTop = container.scrollTop;
     const scrollBottom = container.scrollTop + containerHeight;
@@ -71,7 +103,7 @@ export default class EmojiPicker extends React.Component {
     }
   }
 
-  selectEmoji(emoji) {
+  selectEmoji(emoji: string): void {
     this.setState({
       selectedEmoji: emoji,
     });
@@ -80,20 +112,22 @@ export default class EmojiPicker extends React.Component {
     }
   }
 
-  handleMouseDown = (e) => {
-    this.props.onConfirm(this.state.selectedEmoji);
+  handleMouseDown = (e: React.MouseEvent): void => {
+    if (this.state.selectedEmoji) {
+      this.props.onConfirm(this.state.selectedEmoji);
+    }
     e.preventDefault();
     e.stopPropagation();
   };
 
-  handleMouseEnterSpan = (e) => {
-    const emoji = e.target.getAttribute('data-emoji');
+  handleMouseEnterSpan = (e: React.MouseEvent<HTMLSpanElement>): void => {
+    const emoji = e.currentTarget.getAttribute('data-emoji');
     if (emoji) {
       this.selectEmoji(emoji);
     }
   };
 
-  handleKeyDown = (e) => {
+  handleKeyDown = (e: KeyboardEvent): void => {
     if (e.key === 'Escape') {
       this.props.onEscape();
       return;
@@ -104,7 +138,7 @@ export default class EmojiPicker extends React.Component {
     const key = e.key;
     const shiftKey = e.shiftKey;
 
-    const next = () => {
+    const next = (): void => {
       const offset = shiftKey ? matches.length - 1 : 1;
       const idx = matches.indexOf(selectedEmoji);
       const nextEmoji = matches[(idx + offset) % matches.length];
@@ -112,15 +146,17 @@ export default class EmojiPicker extends React.Component {
       this.scrollEmojiIntoView(nextEmoji);
     };
 
-    // sx, sy should be -1, 0, or 1
-    const move = (sx, sy) => () => {
-      const {cx, cy} = this.getDomPosition(selectedEmoji);
-      // beware, this code is a bit hacky :)
+    const move = (sx: number, sy: number) => (): void => {
+      const pos = this.getDomPosition(selectedEmoji);
+      if (!pos) return;
+      const {cx, cy} = pos;
+
       const bestMatch = _.orderBy(
         matches
           .filter((emoji) => emoji !== selectedEmoji)
           .map((emoji) => {
             const p = this.getDomPosition(emoji);
+            if (!p) return null;
             let dx = p.cx - cx;
             let dy = p.cy - cy;
             let pagex = 0;
@@ -147,18 +183,22 @@ export default class EmojiPicker extends React.Component {
               pagex,
               dx,
             };
-          }),
+          })
+          .filter((match): match is EmojiMatch => match !== null),
         ['pagey', 'dy', 'pagex', 'dx']
       )[0];
-      this.selectEmoji(bestMatch.emoji);
-      this.scrollEmojiIntoView(bestMatch.emoji);
+
+      if (bestMatch) {
+        this.selectEmoji(bestMatch.emoji);
+        this.scrollEmojiIntoView(bestMatch.emoji);
+      }
     };
 
-    const confirm = () => {
-      this.props.onConfirm(this.state.selectedEmoji);
+    const confirm = (): void => {
+      this.props.onConfirm(selectedEmoji);
     };
 
-    const actions = {
+    const actions: {[key: string]: () => void} = {
       Tab: next,
       ArrowLeft: move(-1, 0),
       ArrowRight: move(1, 0),
@@ -168,13 +208,13 @@ export default class EmojiPicker extends React.Component {
     };
 
     if (actions[key]) {
-      actions[key](shiftKey);
+      actions[key]();
       e.preventDefault();
       e.stopPropagation();
     }
   };
 
-  renderHeader() {
+  renderHeader(): React.ReactNode {
     const {pattern} = this.props;
 
     const headerStyle = {
@@ -219,7 +259,7 @@ export default class EmojiPicker extends React.Component {
     );
   }
 
-  renderEmoji(emoji) {
+  renderEmoji(emoji: string): React.ReactNode {
     const {selectedEmoji} = this.state;
     const isSelected = selectedEmoji === emoji;
     const style = {
@@ -253,14 +293,14 @@ export default class EmojiPicker extends React.Component {
     );
   }
 
-  renderMatches() {
+  renderMatches(): React.ReactNode {
     const containerStyle = {
-      display: 'flex', // we don't use flex-view so that we can access the dom el
+      display: 'flex',
       flexWrap: 'wrap',
       padding: 5,
       overflow: 'scroll',
       maxHeight: 200,
-      position: 'relative',
+      position: 'relative' as const,
     };
     const {matches} = this.props;
     return (
@@ -270,7 +310,7 @@ export default class EmojiPicker extends React.Component {
     );
   }
 
-  render() {
+  render(): React.ReactNode {
     return (
       <Flex
         style={{backgroundColor: 'white', color: 'var(--main-gray-1)'}}

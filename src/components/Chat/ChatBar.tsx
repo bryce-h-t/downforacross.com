@@ -3,9 +3,26 @@ import EmojiPicker from './EmojiPicker';
 import * as emojiLib from '../../lib/emoji';
 
 const MAX_EMOJIS = 150;
-export default class ChatBar extends React.Component {
-  constructor() {
-    super();
+
+interface ChatBarProps {
+  mobile?: boolean;
+  placeHolder?: string;
+  onSendMessage: (message: string) => void;
+  onUnfocus: () => void;
+}
+
+interface ChatBarState {
+  message: string;
+  escapedEmoji: string | null;
+  enters: number;
+}
+
+export default class ChatBar extends React.Component<ChatBarProps, ChatBarState> {
+  private input: React.RefObject<HTMLInputElement>;
+  private emojiPicker: React.RefObject<EmojiPicker>;
+
+  constructor(props: ChatBarProps) {
+    super(props);
     this.state = {
       message: '',
       escapedEmoji: null,
@@ -15,7 +32,7 @@ export default class ChatBar extends React.Component {
     this.emojiPicker = React.createRef();
   }
 
-  handlePressEnter = () => {
+  handlePressEnter = (): void => {
     const {message} = this.state;
     if (message.length > 0) {
       this.props.onSendMessage(message);
@@ -25,7 +42,7 @@ export default class ChatBar extends React.Component {
     }
   };
 
-  handleKeyDown = (ev) => {
+  handleKeyDown = (ev: React.KeyboardEvent): void => {
     if (this.emojiPicker.current) {
       this.emojiPicker.current.handleKeyDown(ev);
       return;
@@ -40,16 +57,16 @@ export default class ChatBar extends React.Component {
     }
   };
 
-  handleChangeMobile = (message) => {
+  handleChangeMobile = (message: string): void => {
     this.setState({message});
   };
 
-  handleChange = (ev) => {
+  handleChange = (ev: React.ChangeEvent<HTMLInputElement>): void => {
     const message = ev.target.value;
     this.setState({message});
   };
 
-  handleConfirmEmoji = (emoji) => {
+  handleConfirmEmoji = (emoji: string): void => {
     const words = this.state.message.split(' ');
     const newMessage = [...words.slice(0, words.length - 1), `:${emoji}:`, ''].join(' ');
     this.setState({
@@ -57,7 +74,7 @@ export default class ChatBar extends React.Component {
     });
   };
 
-  handleEscapeEmoji = () => {
+  handleEscapeEmoji = (): void => {
     this.setState({
       escapedEmoji: this.emojiPattern,
     });
@@ -68,14 +85,14 @@ export default class ChatBar extends React.Component {
     }, 5000);
   };
 
-  focus() {
+  focus(): void {
     const input = this.input.current;
     if (input) {
       input.focus();
     }
   }
 
-  get emojiPattern() {
+  get emojiPattern(): string | undefined {
     const words = this.state.message.split(' ');
     const lastWord = words[words.length - 1];
     if (lastWord.startsWith(':')) {
@@ -89,7 +106,7 @@ export default class ChatBar extends React.Component {
     return undefined;
   }
 
-  renderEmojiPicker() {
+  renderEmojiPicker(): React.ReactNode {
     return (
       <div
         style={{
@@ -112,7 +129,7 @@ export default class ChatBar extends React.Component {
     );
   }
 
-  renderInput() {
+  renderInput(): React.ReactNode {
     return (
       <input
         ref={this.input}
@@ -125,7 +142,7 @@ export default class ChatBar extends React.Component {
     );
   }
 
-  render() {
+  render(): React.ReactNode {
     return (
       <div className="chat--bar">
         {this.emojiPattern && this.renderEmojiPicker()}
