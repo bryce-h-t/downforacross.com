@@ -9,10 +9,14 @@
     "lib": ["dom", "dom.iterable", "esnext"],
     "skipLibCheck": true,
     "strict": true,
-    "types": ["react", "react-dom"],
     "moduleResolution": "node",
-    "jsxFactory": "React.createElement",
-    "jsxFragmentFactory": "React.Fragment"
+    "target": "es6",
+    "types": ["react", "react-dom", "node"],
+    "typeRoots": ["./node_modules/@types", "./src/types"],
+    "baseUrl": ".",
+    "paths": {
+      "*": ["node_modules/*"]
+    }
   },
   "paths": {
     "@shared/*": [
