@@ -2,17 +2,31 @@ import React from 'react';
 import EmojiPicker from './EmojiPicker';
 import * as emojiLib from '../../lib/emoji';
 
+interface ChatBarProps {
+  mobile?: boolean;
+  onSendMessage: (message: string) => void;
+  onUnfocus: () => void;
+}
+
+interface ChatBarState {
+  message: string;
+  escapedEmoji: string | null;
+  enters: number;
+}
+
 const MAX_EMOJIS = 150;
-export default class ChatBar extends React.Component {
-  constructor() {
-    super();
+export default class ChatBar extends React.Component<ChatBarProps, ChatBarState> {
+  private input: React.RefObject<HTMLInputElement>;
+  private emojiPicker: React.RefObject<EmojiPicker>;
+  constructor(props: ChatBarProps) {
+    super(props);
     this.state = {
       message: '',
       escapedEmoji: null,
       enters: 0,
     };
-    this.input = React.createRef();
-    this.emojiPicker = React.createRef();
+    this.input = React.createRef<HTMLInputElement>();
+    this.emojiPicker = React.createRef<EmojiPicker>();
   }
 
   handlePressEnter = () => {
@@ -25,7 +39,7 @@ export default class ChatBar extends React.Component {
     }
   };
 
-  handleKeyDown = (ev) => {
+  handleKeyDown = (ev: React.KeyboardEvent): void => {
     if (this.emojiPicker.current) {
       this.emojiPicker.current.handleKeyDown(ev);
       return;
@@ -40,16 +54,16 @@ export default class ChatBar extends React.Component {
     }
   };
 
-  handleChangeMobile = (message) => {
+  handleChangeMobile = (message: string): void => {
     this.setState({message});
   };
 
-  handleChange = (ev) => {
+  handleChange = (ev: React.ChangeEvent<HTMLInputElement>): void => {
     const message = ev.target.value;
     this.setState({message});
   };
 
-  handleConfirmEmoji = (emoji) => {
+  handleConfirmEmoji = (emoji: string): void => {
     const words = this.state.message.split(' ');
     const newMessage = [...words.slice(0, words.length - 1), `:${emoji}:`, ''].join(' ');
     this.setState({
@@ -57,9 +71,9 @@ export default class ChatBar extends React.Component {
     });
   };
 
-  handleEscapeEmoji = () => {
+  handleEscapeEmoji = (): void => {
     this.setState({
-      escapedEmoji: this.emojiPattern,
+      escapedEmoji: this.emojiPattern || null,
     });
     setTimeout(() => {
       this.setState({
@@ -68,14 +82,14 @@ export default class ChatBar extends React.Component {
     }, 5000);
   };
 
-  focus() {
+  focus(): void {
     const input = this.input.current;
     if (input) {
       input.focus();
     }
   }
 
-  get emojiPattern() {
+  get emojiPattern(): string | undefined {
     const words = this.state.message.split(' ');
     const lastWord = words[words.length - 1];
     if (lastWord.startsWith(':')) {
