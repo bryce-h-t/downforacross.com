@@ -77,7 +77,7 @@ export const transformGameToPlayerProps = (
     pings: [],
     users,
     frozen: null,
-    myColor: null,
+    myColor: '#000000',
     addPing: null,
     onPressEnter: null,
     onPressPeriod: null,

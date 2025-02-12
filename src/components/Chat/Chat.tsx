@@ -11,17 +11,21 @@ import nameGenerator, {isFromNameGenerator} from '../../lib/nameGenerator';
 import ChatBar from './ChatBar';
 import EditableSpan from '../common/EditableSpan';
 import MobileKeyboard from '../Player/MobileKeyboard';
-import ColorPicker from './ColorPicker.tsx';
+import ColorPicker from './ColorPicker';
 import {formatMilliseconds} from '../Toolbar/Clock';
+import {ChatProps, ChatState} from './types';
 
 const isEmojis = (str) => {
   const res = str.match(/[A-Za-z,.0-9!-]/g);
   return !res;
 };
 
-export default class Chat extends Component {
-  constructor() {
-    super();
+export default class Chat extends Component<ChatProps, ChatState> {
+  private chatBar: React.RefObject<ChatBar>;
+  private usernameInput: React.RefObject<EditableSpan>;
+
+  constructor(props: ChatProps) {
+    super(props);
     // We'll set the username state when we mount the component.
     this.state = {
       username: '',
@@ -31,30 +35,28 @@ export default class Chat extends Component {
   }
 
   componentDidMount() {
-    let username = this.props.initialUsername;
+    let username = this.props.initialUsername || '';
     const battleName = localStorage.getItem(`battle_${this.props.bid}`);
     // HACK
     if (battleName && !username) {
       username = battleName;
-      this.setState({username: battleName});
-    } else {
-      this.setState({username});
     }
-    this.handleUpdateDisplayName(username);
+    this.setState({username});
+    this.handleUpdateDisplayName(username || nameGenerator());
   }
 
   get usernameKey() {
     return `username_${window.location.href}`;
   }
 
-  handleSendMessage = (message) => {
+  handleSendMessage = (message: string): void => {
     const {id} = this.props;
     const username = this.props.users[id].displayName;
     this.props.onChat(username, id, message);
     localStorage.setItem(this.usernameKey, username);
   };
 
-  handleUpdateDisplayName = (username) => {
+  handleUpdateDisplayName = (username: string): void => {
     if (!this.usernameInput?.current?.focused) {
       username = username || nameGenerator();
     }
@@ -72,8 +74,8 @@ export default class Chat extends Component {
     }
   };
 
-  handleUpdateColor = (color) => {
-    color = color || this.props.color;
+  handleUpdateColor = (color: string): void => {
+    color = color || this.props.myColor;
     const {id} = this.props;
     this.props.onUpdateColor(id, color);
   };
@@ -100,26 +102,29 @@ export default class Chat extends Component {
     return `${this.serverUrl}/beta${this.props.path}`;
   }
 
-  handleCopyClick = () => {
+  handleCopyClick = (): void => {
     navigator.clipboard.writeText(this.url);
-    // `${window.location.host}/beta${this.props.path}`);
-    let link = document.getElementById('pathText');
-    link.classList.remove('flashBlue');
-    void link.offsetWidth;
-    link.classList.add('flashBlue');
+    const link = document.getElementById('pathText');
+    if (link) {
+      link.classList.remove('flashBlue');
+      void link.offsetWidth;
+      link.classList.add('flashBlue');
+    }
   };
 
-  handleShareScoreClick = () => {
+  handleShareScoreClick = (): void => {
     const text = `${Object.keys(this.props.users).length > 1 ? 'We' : 'I'} solved ${
       this.props.game.info.title
     } in ${formatMilliseconds(this.props.game.clock.totalTime)}!\n\n${this.serverUrl}/beta/play/${
       this.props.game.pid
     }`;
     navigator.clipboard.writeText(text);
-    let link = document.getElementById('shareText');
-    link.classList.remove('flashBlue');
-    void link.offsetWidth;
-    link.classList.add('flashBlue');
+    const link = document.getElementById('shareText');
+    if (link) {
+      link.classList.remove('flashBlue');
+      void link.offsetWidth;
+      link.classList.add('flashBlue');
+    }
   };
 
   focus = () => {
@@ -129,47 +134,50 @@ export default class Chat extends Component {
     }
   };
 
-  mergeMessages(data, opponentData) {
-    if (!opponentData) {
-      return data.messages || [];
+  mergeMessages(data: ChatProps['data'], opponentData?: ChatProps['opponentData']) {
+    if (!data?.messages) {
+      return [];
+    }
+    if (!opponentData?.messages) {
+      return data.messages;
     }
 
-    const getMessages = (data, isOpponent) => _.map(data.messages, (message) => ({...message, isOpponent}));
-
-    const messages = _.concat(getMessages(data, false), getMessages(opponentData, true));
+    const messages = [
+      ...data.messages.map((message) => ({...message, isOpponent: false})),
+      ...opponentData.messages.map((message) => ({...message, isOpponent: true})),
+    ];
 
     return _.sortBy(messages, 'timestamp');
   }
 
-  getMessageColor(senderId, isOpponent) {
-    const {users, teams} = this.props;
+  getMessageColor(senderId: string, isOpponent?: boolean): string {
+    const {users} = this.props;
     if (isOpponent === undefined) {
       if (users[senderId]?.teamId) {
-        return teams?.[users[senderId].teamId]?.color;
+        return users[senderId]?.color || '';
       }
-      return users[senderId]?.color;
+      return users[senderId]?.color || '';
     }
     return isOpponent ? 'rgb(220, 107, 103)' : 'rgb(47, 137, 141)';
   }
 
-  renderGameButton() {
+  renderGameButton(): React.ReactNode {
     return <MdClose onClick={this.handleToggleChat} className="toolbar--game" />;
   }
 
-  renderToolbar() {
+  renderToolbar(): React.ReactNode | undefined {
     if (!this.props.mobile) return;
     return (
       <Flex className="toolbar--mobile" vAlignContent="center">
-        <Link to="/">Down for a Cross</Link> {this.renderGameButton()}
+        <a href="/">Down for a Cross</a> {this.renderGameButton()}
       </Flex>
     );
   }
 
-  renderFencingOptions() {
-    const fencingUrl = `/fencing/${this.props.gid}`;
-    const normalUrl = `/beta/game/${this.props.gid}`;
-    const isFencing = this.props.isFencing;
-    // const fencingStarted = this.props.game.isFencing;
+  renderFencingOptions(): React.ReactNode {
+    const fencingUrl = `/fencing/${this.props.game.gid}`;
+    const normalUrl = `/beta/game/${this.props.game.gid}`;
+    const isFencing = this.props.game.isFencing;
     const fencingPlayers = this.props.game.fencingUsers?.length ?? 0;
     return (
       <div>
@@ -186,8 +194,8 @@ export default class Chat extends Component {
 
   renderChatHeader() {
     if (this.props.header) return this.props.header;
-    const {info = {}, bid} = this.props;
-    const {title, description, author, type} = info;
+    const {game} = this.props;
+    const {title, description, author, type} = game.info;
     const desc = description?.startsWith('; ') ? description.substring(2) : description;
 
     return (
@@ -201,10 +209,10 @@ export default class Chat extends Component {
           </div>
         )}
 
-        {bid && (
+        {this.props.bid && (
           <div className="chat--header--subtitle">
             Battle
-            {bid}
+            {this.props.bid}
           </div>
         )}
         {this.renderFencingOptions()}
@@ -231,10 +239,12 @@ export default class Chat extends Component {
     );
   }
 
-  renderUserPresent(id, displayName, color) {
-    const style = color && {
-      color,
-    };
+  renderUserPresent(id: string, displayName: string, color?: string): React.ReactNode {
+    const style = color
+      ? {
+          color,
+        }
+      : undefined;
     return (
       <span key={id} style={style}>
         <span className="dot">{'\u25CF'}</span>
@@ -263,7 +273,7 @@ export default class Chat extends Component {
     );
   }
 
-  renderMessageTimestamp(timestamp) {
+  renderMessageTimestamp(timestamp: number): React.ReactNode {
     return (
       <span className="chat--message--timestamp">
         {new Date(timestamp).toLocaleTimeString([], {hour: 'numeric', minute: '2-digit'})}
@@ -271,10 +281,12 @@ export default class Chat extends Component {
     );
   }
 
-  renderMessageSender(name, color) {
-    const style = color && {
-      color,
-    };
+  renderMessageSender(name: string, color?: string): React.ReactNode {
+    const style = color
+      ? {
+          color,
+        }
+      : undefined;
     return (
       <span className="chat--message--sender" style={style}>
         {name}:
@@ -282,9 +294,22 @@ export default class Chat extends Component {
     );
   }
 
-  renderMessageText(text) {
+  renderMessageText(text: string): React.ReactNode {
     const words = text.split(' ');
-    const tokens = [];
+    type Token =
+      | {
+          type: 'emoji';
+          data: string;
+        }
+      | {
+          type: 'clueref';
+          data: RegExpMatchArray;
+        }
+      | {
+          type: 'text';
+          data: string;
+        };
+    const tokens: Token[] = [];
     words.forEach((word) => {
       if (word.length === 0) return;
       if (word.startsWith(':') && word.endsWith(':')) {
@@ -341,7 +366,7 @@ export default class Chat extends Component {
   }
 
   // clueref is in the format [pattern, number, a(cross) | d(own)]
-  renderClueRef(clueref) {
+  renderClueRef(clueref: RegExpMatchArray): React.ReactNode {
     const defaultPattern = clueref[0];
 
     let clueNumber;
@@ -359,7 +384,7 @@ export default class Chat extends Component {
     if (clueNumber >= 0 && clueNumber < clues.length && clues[clueNumber] !== undefined) {
       const handleClick = () => {
         const directionStr = isAcross ? 'across' : 'down';
-        this.props.onSelectClue(directionStr, clueNumber);
+        this.props.onSelectClue?.(directionStr, clueNumber);
       };
 
       return <button onClick={handleClick}> {defaultPattern} </button>;
@@ -368,7 +393,12 @@ export default class Chat extends Component {
     }
   }
 
-  renderMessage(message) {
+  renderMessage(message: {
+    text: string;
+    senderId: string;
+    isOpponent?: boolean;
+    timestamp: number;
+  }): React.ReactNode {
     const {text, senderId: id, isOpponent, timestamp} = message;
     const big = text.length <= 10 && isEmojis(text);
     const color = this.getMessageColor(id, isOpponent);
@@ -385,7 +415,7 @@ export default class Chat extends Component {
     );
   }
 
-  renderMobileKeyboard() {
+  renderMobileKeyboard(): React.ReactNode | undefined {
     if (!this.props.mobile) {
       return;
     }
@@ -397,7 +427,7 @@ export default class Chat extends Component {
     );
   }
 
-  renderChatSubheader() {
+  renderChatSubheader(): React.ReactNode {
     if (this.props.subheader) return this.props.subheader;
     const users = this.props.users;
 

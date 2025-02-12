@@ -3,14 +3,18 @@
   "compilerOptions": {
     "module": "esnext",
     "noFallthroughCasesInSwitch": true,
-    "jsx": "react-jsx"
+    "jsx": "react",
+    "baseUrl": ".",
+    "paths": {
+      "@shared/*": ["./src/shared/*"],
+      "@lib/*": ["./src/lib/*"]
+    },
+    "types": ["react", "react-dom", "node"],
+    "skipLibCheck": true,
+    "noImplicitAny": false,
+    "allowJs": true,
+    "esModuleInterop": true
   },
-  "paths": {
-    "@shared/*": [
-      "./src/shared/*"
-    ],
-    "@lib/*": [
-      "./src/lib/*"
-    ]
-  }
+  "include": ["src/**/*", "server/**/*"],
+  "exclude": ["node_modules"]
 }

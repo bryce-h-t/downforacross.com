@@ -1,11 +1,15 @@
 import React from 'react';
 import EmojiPicker from './EmojiPicker';
 import * as emojiLib from '../../lib/emoji';
+import {ChatBarProps, ChatBarState} from './types';
 
 const MAX_EMOJIS = 150;
-export default class ChatBar extends React.Component {
-  constructor() {
-    super();
+export default class ChatBar extends React.Component<ChatBarProps, ChatBarState> {
+  private input: React.RefObject<HTMLInputElement>;
+  private emojiPicker: React.RefObject<EmojiPicker>;
+
+  constructor(props: ChatBarProps) {
+    super(props);
     this.state = {
       message: '',
       escapedEmoji: null,
@@ -15,7 +19,7 @@ export default class ChatBar extends React.Component {
     this.emojiPicker = React.createRef();
   }
 
-  handlePressEnter = () => {
+  handlePressEnter = (): void => {
     const {message} = this.state;
     if (message.length > 0) {
       this.props.onSendMessage(message);
@@ -25,9 +29,9 @@ export default class ChatBar extends React.Component {
     }
   };
 
-  handleKeyDown = (ev) => {
+  handleKeyDown = (ev: React.KeyboardEvent): void => {
     if (this.emojiPicker.current) {
-      this.emojiPicker.current.handleKeyDown(ev);
+      this.emojiPicker.current.handleKeyDown(ev.nativeEvent);
       return;
     }
 
@@ -40,11 +44,11 @@ export default class ChatBar extends React.Component {
     }
   };
 
-  handleChangeMobile = (message) => {
+  handleChangeMobile = (message: string): void => {
     this.setState({message});
   };
 
-  handleChange = (ev) => {
+  handleChange = (ev: React.ChangeEvent<HTMLInputElement>): void => {
     const message = ev.target.value;
     this.setState({message});
   };
@@ -58,8 +62,9 @@ export default class ChatBar extends React.Component {
   };
 
   handleEscapeEmoji = () => {
+    const pattern = this.emojiPattern;
     this.setState({
-      escapedEmoji: this.emojiPattern,
+      escapedEmoji: pattern || null,
     });
     setTimeout(() => {
       this.setState({
@@ -75,7 +80,7 @@ export default class ChatBar extends React.Component {
     }
   }
 
-  get emojiPattern() {
+  get emojiPattern(): string | undefined {
     const words = this.state.message.split(' ');
     const lastWord = words[words.length - 1];
     if (lastWord.startsWith(':')) {

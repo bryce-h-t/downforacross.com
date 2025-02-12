@@ -250,19 +250,28 @@ export const Fencing: React.FC<{gid: string}> = (props) => {
             <Chat
               isFencing
               subheader={<div className={classes.scoreboardContainer}>{fencingScoreboard}</div>}
-              info={gameState.game.info}
-              teams={gameState.teams}
               path={`/fencing/${gid}`}
-              data={gameState.chat}
-              game={gameState.game}
-              gid={gid}
+              data={{
+                messages:
+                  gameState.chat?.messages?.map((msg) => ({
+                    ...msg,
+                    timestamp: msg.timestamp || Date.now(),
+                  })) || [],
+              }}
+              game={{
+                ...gameState.game,
+                clock: {
+                  totalTime: 0,
+                },
+              }}
               users={gameState.users}
               id={id}
-              myColor={null}
+              myColor="#000000"
               onChat={handleChat}
               mobile={false}
-              updateSeenChatMessage={null}
               onUpdateDisplayName={(_id: string, name: string) => changeName(name)}
+              onUpdateColor={() => {}}
+              onToggleChat={() => {}}
             />
           )}
         </Flex>

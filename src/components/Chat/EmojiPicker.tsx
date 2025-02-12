@@ -1,15 +1,18 @@
 /* eslint react/no-unescaped-entities: "warn" */
 import React from 'react';
-
 import Flex from 'react-flexview';
 import _ from 'lodash';
 import Emoji from '../common/Emoji';
+import {EmojiPickerProps, EmojiPickerState} from './types';
 
-const Kbd = ({children}) => <kbd>{children}</kbd>;
+const Kbd: React.FC<{children: React.ReactNode}> = ({children}) => <kbd>{children}</kbd>;
 
-export default class EmojiPicker extends React.Component {
-  constructor() {
-    super();
+export default class EmojiPicker extends React.Component<EmojiPickerProps, EmojiPickerState> {
+  private emojiRefs: Record<string, React.RefObject<HTMLSpanElement>>;
+  private listContainer: React.RefObject<HTMLDivElement>;
+
+  constructor(props: EmojiPickerProps) {
+    super(props);
     this.state = {
       selectedEmoji: null,
     };
@@ -40,7 +43,7 @@ export default class EmojiPicker extends React.Component {
     window.removeEventListener('keydown', this.handleKeyDown);
   }
 
-  getDomPosition(emoji) {
+  getDomPosition(emoji: string): {left: number; right: number; cx: number; cy: number} | null {
     const ref = this.emojiRefs[emoji];
     if (!ref || !ref.current) return null;
     const el = ref.current;
@@ -53,13 +56,15 @@ export default class EmojiPicker extends React.Component {
     };
   }
 
-  scrollEmojiIntoView(emoji) {
+  scrollEmojiIntoView(emoji: string): void {
     // HACK: hardcoding container's padding here
     const padding = 5;
-    const span = this.emojiRefs[emoji].current;
+    const span = this.emojiRefs[emoji]?.current;
+    const container = this.listContainer.current;
+    if (!span || !container) return;
+
     const top = span.offsetTop;
     const bottom = top + span.offsetHeight;
-    const container = this.listContainer.current;
     const containerHeight = container.getBoundingClientRect().height - 2 * padding;
     const scrollTop = container.scrollTop;
     const scrollBottom = container.scrollTop + containerHeight;
@@ -80,20 +85,22 @@ export default class EmojiPicker extends React.Component {
     }
   }
 
-  handleMouseDown = (e) => {
-    this.props.onConfirm(this.state.selectedEmoji);
+  handleMouseDown = (e: React.MouseEvent): void => {
+    if (this.state.selectedEmoji) {
+      this.props.onConfirm(this.state.selectedEmoji);
+    }
     e.preventDefault();
     e.stopPropagation();
   };
 
-  handleMouseEnterSpan = (e) => {
-    const emoji = e.target.getAttribute('data-emoji');
+  handleMouseEnterSpan = (e: React.MouseEvent<HTMLSpanElement>): void => {
+    const emoji = (e.target as HTMLElement).getAttribute('data-emoji');
     if (emoji) {
       this.selectEmoji(emoji);
     }
   };
 
-  handleKeyDown = (e) => {
+  handleKeyDown = (e: KeyboardEvent): void => {
     if (e.key === 'Escape') {
       this.props.onEscape();
       return;
@@ -113,14 +120,17 @@ export default class EmojiPicker extends React.Component {
     };
 
     // sx, sy should be -1, 0, or 1
-    const move = (sx, sy) => () => {
-      const {cx, cy} = this.getDomPosition(selectedEmoji);
+    const move = (sx: number, sy: number) => () => {
+      const pos = this.getDomPosition(selectedEmoji);
+      if (!pos) return;
+      const {cx, cy} = pos;
       // beware, this code is a bit hacky :)
       const bestMatch = _.orderBy(
         matches
           .filter((emoji) => emoji !== selectedEmoji)
           .map((emoji) => {
             const p = this.getDomPosition(emoji);
+            if (!p) return null;
             let dx = p.cx - cx;
             let dy = p.cy - cy;
             let pagex = 0;
@@ -147,7 +157,8 @@ export default class EmojiPicker extends React.Component {
               pagex,
               dx,
             };
-          }),
+          })
+          .filter((x): x is NonNullable<typeof x> => x !== null),
         ['pagey', 'dy', 'pagex', 'dx']
       )[0];
       this.selectEmoji(bestMatch.emoji);
@@ -155,7 +166,9 @@ export default class EmojiPicker extends React.Component {
     };
 
     const confirm = () => {
-      this.props.onConfirm(this.state.selectedEmoji);
+      if (this.state.selectedEmoji) {
+        this.props.onConfirm(this.state.selectedEmoji);
+      }
     };
 
     const actions = {
@@ -177,52 +190,40 @@ export default class EmojiPicker extends React.Component {
   renderHeader() {
     const {pattern} = this.props;
 
-    const headerStyle = {
+    const headerStyle: React.CSSProperties = {
       justifyContent: 'space-between',
       backgroundColor: 'beige',
       borderBottom: '1px solid #333333',
       padding: 5,
       fontSize: '50%',
     };
-    const patternStyle = {fontWeight: 'bold'};
+    const patternStyle: React.CSSProperties = {fontWeight: 'bold'};
     const hintStyle = {marginLeft: 20};
     return (
       <Flex style={headerStyle}>
         <span>
-          <span style={patternStyle}>
-            "
-            {`:${pattern}`}
-            "
-          </span>
+          <span style={patternStyle}>"{`:${pattern}`}"</span>
         </span>
         <span>
           <span style={hintStyle}>
-            <Kbd>tab</Kbd>
-            {' '}
-            or
-            <Kbd>↑↓</Kbd>
-            {' '}
-            to navigate
+            <Kbd>tab</Kbd> or
+            <Kbd>↑↓</Kbd> to navigate
           </span>
           <span style={hintStyle}>
-            <Kbd>↩</Kbd>
-            {' '}
-            to select
+            <Kbd>↩</Kbd> to select
           </span>
           <span style={hintStyle}>
-            <Kbd>esc</Kbd>
-            {' '}
-            to dismiss
+            <Kbd>esc</Kbd> to dismiss
           </span>
         </span>
       </Flex>
     );
   }
 
-  renderEmoji(emoji) {
+  renderEmoji(emoji: string): React.ReactNode {
     const {selectedEmoji} = this.state;
     const isSelected = selectedEmoji === emoji;
-    const style = {
+    const style: React.CSSProperties = {
       backgroundColor: isSelected ? '#6AA9F4' : 'white',
       color: isSelected ? 'white' : 'inherit',
       cursor: 'pointer',
@@ -231,7 +232,7 @@ export default class EmojiPicker extends React.Component {
       marginRight: 20,
     };
 
-    const textStyle = {
+    const textStyle: React.CSSProperties = {
       fontSize: '70%',
       marginLeft: 5,
     };
@@ -247,14 +248,14 @@ export default class EmojiPicker extends React.Component {
         data-emoji={emoji}
         onMouseMove={this.handleMouseEnterSpan}
       >
-        <Emoji emoji={emoji} />
+        <Emoji emoji={emoji} big={false} />
         <span style={textStyle}>{`:${emoji}:`}</span>
       </span>
     );
   }
 
   renderMatches() {
-    const containerStyle = {
+    const containerStyle: React.CSSProperties = {
       display: 'flex', // we don't use flex-view so that we can access the dom el
       flexWrap: 'wrap',
       padding: 5,
