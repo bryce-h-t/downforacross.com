@@ -1,7 +1,5 @@
-import * as React from 'react';
-import type { ReactNode } from 'react';
-import type { RefObject } from 'react';
-import type { KeyboardEvent, ChangeEvent } from 'react';
+import React from 'react';
+import type { ReactNode, RefObject, KeyboardEvent, ChangeEvent, Component } from 'react';
 import _ from 'lodash';
 import Flex from 'react-flexview';
 import Linkify from 'react-linkify';
@@ -100,7 +98,7 @@ const isEmojis = (str: string): boolean => {
   return !res;
 };
 
-export default class Chat extends React.Component<ChatProps, ChatState> {
+export default class Chat extends Component<ChatProps, ChatState> {
   static defaultProps = {
     messages: [],
     isVisible: false,
