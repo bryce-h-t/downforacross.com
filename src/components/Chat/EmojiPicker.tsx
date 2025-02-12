@@ -1,8 +1,5 @@
 /* eslint react/no-unescaped-entities: "warn" */
-import * as React from 'react';
-import type { ReactNode } from 'react';
-import type { RefObject } from 'react';
-import type { KeyboardEvent, MouseEvent } from 'react';
+import React, { Component, ReactNode, RefObject, KeyboardEvent, MouseEvent } from 'react';
 import Flex from 'react-flexview';
 import _ from 'lodash';
 import Emoji from '../common/Emoji';
@@ -41,7 +38,7 @@ interface EmojiMatch {
 
 const Kbd = ({children}: KbdProps): JSX.Element => <kbd>{children}</kbd>;
 
-export default class EmojiPicker extends React.Component<EmojiPickerProps, EmojiPickerState> {
+export default class EmojiPicker extends Component<EmojiPickerProps, EmojiPickerState> {
   private emojiRefs: Record<string, RefObject<HTMLSpanElement>> = {};
   private listContainer: RefObject<HTMLDivElement>;
 
