@@ -20,7 +20,6 @@ type RefObject<T> = React.RefObject<T>;
 type KeyboardEvent = React.KeyboardEvent;
 type ChangeEvent = React.ChangeEvent;
 type CSSProperties = React.CSSProperties;
-import {MdClose} from 'react-icons/md';
 
 import './css/index.css';
 import Emoji from '../common/Emoji';
