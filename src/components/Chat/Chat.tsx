@@ -1,4 +1,9 @@
 import * as React from 'react';
+type ReactNode = React.ReactNode;
+type RefObject<T> = React.RefObject<T>;
+type KeyboardEvent = React.KeyboardEvent;
+type ChangeEvent = React.ChangeEvent;
+type CSSProperties = React.CSSProperties;
 import _ from 'lodash';
 import Flex from 'react-flexview';
 import Linkify from 'react-linkify';
