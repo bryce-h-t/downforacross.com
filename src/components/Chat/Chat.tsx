@@ -86,6 +86,11 @@ interface ChatState {
   username: string;
 }
 
+interface MessageToken {
+  type: 'emoji' | 'clueref' | 'text';
+  data: string | RegExpMatchArray;
+}
+
 const isEmojis = (str: string): boolean => {
   const res = str.match(/[A-Za-z,.0-9!-]/g);
   return !res;
@@ -354,11 +359,6 @@ export default class Chat extends Component<ChatProps, ChatState> {
         {name}:
       </span>
     );
-  }
-
-  interface MessageToken {
-    type: 'emoji' | 'clueref' | 'text';
-    data: string | RegExpMatchArray;
   }
 
   renderMessageText(text: string): React.ReactNode {
