@@ -188,15 +188,15 @@ export default class EmojiPicker extends React.Component<EmojiPickerProps, Emoji
   renderHeader(): React.ReactNode {
     const {pattern} = this.props;
 
-    const headerStyle = {
+    const headerStyle: React.CSSProperties = {
       justifyContent: 'space-between',
       backgroundColor: 'beige',
       borderBottom: '1px solid #333333',
       padding: 5,
       fontSize: '50%',
     };
-    const patternStyle = {fontWeight: 'bold'};
-    const hintStyle = {marginLeft: 20};
+    const patternStyle: React.CSSProperties = {fontWeight: 'bold'};
+    const hintStyle: React.CSSProperties = {marginLeft: 20};
     return (
       <Flex style={headerStyle}>
         <span>
