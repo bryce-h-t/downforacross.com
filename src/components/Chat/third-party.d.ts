@@ -32,3 +32,13 @@ declare module 'react-icons/md/index' {
   export type IconType = React.ComponentType<IconBaseProps>;
   export const MdClose: IconType;
 }
+
+declare module 'react-router-dom' {
+  import * as React from 'react';
+  export interface LinkProps {
+    to: string;
+    children?: React.ReactNode;
+    className?: string;
+  }
+  export const Link: React.FC<LinkProps>;
+}
