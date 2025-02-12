@@ -1,6 +1,6 @@
 /* eslint react/no-unescaped-entities: "warn" */
-import React, { Component } from 'react';
-import type { ReactNode, RefObject, KeyboardEvent, MouseEvent } from 'react';
+import * as React from 'react';
+import type { Component, ReactNode, RefObject, KeyboardEvent, MouseEvent } from 'react';
 import Flex from 'react-flexview';
 import _ from 'lodash';
 import Emoji from '../common/Emoji';
