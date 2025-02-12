@@ -37,9 +37,9 @@ interface EmojiMatch {
   dx: number;
 }
 
-const Kbd: React.FC<KbdProps> = ({children}) => <kbd>{children}</kbd>;
+const Kbd = ({children}: KbdProps): JSX.Element => <kbd>{children}</kbd>;
 
-export default class EmojiPicker extends Component<EmojiPickerProps, EmojiPickerState> {
+export default class EmojiPicker extends React.Component<EmojiPickerProps, EmojiPickerState> {
   private emojiRefs: Record<string, RefObject<HTMLSpanElement>> = {};
   private listContainer: RefObject<HTMLDivElement>;
 
@@ -117,7 +117,7 @@ export default class EmojiPicker extends Component<EmojiPickerProps, EmojiPicker
     }
   }
 
-  handleMouseDown = (e: MouseEvent): void => {
+  handleMouseDown = (e: React.MouseEvent): void => {
     if (this.state.selectedEmoji) {
       this.props.onConfirm(this.state.selectedEmoji);
     }
@@ -132,7 +132,7 @@ export default class EmojiPicker extends Component<EmojiPickerProps, EmojiPicker
     }
   };
 
-  handleKeyDown = (e: KeyboardEvent): void => {
+  handleKeyDown = (e: React.KeyboardEvent): void => {
     if (e.key === 'Escape') {
       this.props.onEscape();
       return;
