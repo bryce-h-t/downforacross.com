@@ -98,8 +98,12 @@ const isEmojis = (str: string): boolean => {
 };
 
 export default class Chat extends React.Component<ChatProps, ChatState> {
-  private chatBar: RefObject<ChatBar>;
-  private usernameInput: RefObject<EditableSpan>;
+  static defaultProps = {
+    messages: [],
+    isVisible: false,
+  };
+  private chatBar: React.RefObject<ChatBar>;
+  private usernameInput: React.RefObject<EditableSpan>;
   declare readonly state: ChatState;
   static defaultProps = {
     messages: [],
