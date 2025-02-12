@@ -1,5 +1,4 @@
 import * as React from 'react';
-import type { Component, ReactNode, RefObject, KeyboardEvent, ChangeEvent } from 'react';
 import _ from 'lodash';
 import Flex from 'react-flexview';
 import Linkify from 'react-linkify';
@@ -98,7 +97,7 @@ const isEmojis = (str: string): boolean => {
   return !res;
 };
 
-export default class Chat extends Component<ChatProps, ChatState> {
+export default class Chat extends React.Component<ChatProps, ChatState> {
   private chatBar: RefObject<ChatBar>;
   private usernameInput: RefObject<EditableSpan>;
   declare readonly state: ChatState;
