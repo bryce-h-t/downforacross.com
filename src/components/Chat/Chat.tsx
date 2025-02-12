@@ -6,6 +6,28 @@ import Linkify from 'react-linkify';
 import {Link} from 'react-router-dom';
 import {MdClose} from 'react-icons/md';
 import type {IconType} from 'react-icons';
+
+// Type declarations for third-party components
+declare module 'react-flexview' {
+  interface FlexViewProps {
+    column?: boolean;
+    vAlignContent?: string;
+    grow?: number;
+    shrink?: number;
+    className?: string;
+    children?: React.ReactNode;
+  }
+  const FlexView: React.FC<FlexViewProps>;
+  export default FlexView;
+}
+
+declare module 'react-linkify' {
+  interface LinkifyProps {
+    children: React.ReactNode;
+  }
+  const Linkify: React.FC<LinkifyProps>;
+  export default Linkify;
+}
 import Emoji from '../common/Emoji';
 import * as emojiLib from '../../lib/emoji';
 import nameGenerator, {isFromNameGenerator} from '../../lib/nameGenerator';
