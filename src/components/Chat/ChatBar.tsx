@@ -1,4 +1,5 @@
-import React, { Component, ReactNode, RefObject, KeyboardEvent, ChangeEvent } from 'react';
+import * as React from 'react';
+import type { ComponentType } from 'react';
 import EmojiPicker from './EmojiPicker';
 import * as emojiLib from '../../lib/emoji';
 
@@ -7,7 +8,6 @@ interface ChatBarProps {
   placeHolder?: string;
   onSendMessage: (message: string) => void;
   onUnfocus: () => void;
-  ref?: React.RefObject<ChatBar>;
 }
 
 interface ChatBarState {
