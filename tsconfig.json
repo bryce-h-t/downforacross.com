@@ -5,7 +5,10 @@
     "noFallthroughCasesInSwitch": true,
     "jsx": "react",
     "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "skipLibCheck": true,
+    "strict": true
   },
   "paths": {
     "@shared/*": [
