@@ -1,4 +1,5 @@
 import {UserJson, CellCoords} from '../../shared/types';
+import React from 'react';
 
 export interface ChatMessage {
   text: string;

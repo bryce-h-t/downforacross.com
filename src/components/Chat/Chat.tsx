@@ -12,6 +12,7 @@ import ChatBar from './ChatBar';
 import EditableSpan from '../common/EditableSpan';
 import MobileKeyboard from '../Player/MobileKeyboard';
 import ColorPicker from './ColorPicker';
+import type {ChatProps, ChatState, ChatMessage, ChatData} from './types';
 import {formatMilliseconds} from '../Toolbar/Clock';
 import {ChatProps, ChatState, ChatMessage, ChatData} from './types';
 
@@ -235,9 +236,11 @@ export default class Chat extends Component<ChatProps, ChatState> {
   }
 
   renderUserPresent(id: string, displayName: string, color?: string): React.ReactNode {
-    const style = color ? {
-      color,
-    } : undefined;
+    const style = color
+      ? {
+          color,
+        }
+      : undefined;
     return (
       <span key={id} style={style}>
         <span className="dot">{'\u25CF'}</span>
@@ -275,9 +278,11 @@ export default class Chat extends Component<ChatProps, ChatState> {
   }
 
   renderMessageSender(name: string, color?: string): React.ReactNode {
-    const style = color ? {
-      color,
-    } : undefined;
+    const style = color
+      ? {
+          color,
+        }
+      : undefined;
     return (
       <span className="chat--message--sender" style={style}>
         {name}:
