@@ -45,10 +45,17 @@ declare module 'react-icons/md/index' {
 
 declare module 'react-router-dom' {
   import * as React from 'react';
-  export interface LinkProps {
+  export interface LinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
     to: string;
-    children?: React.ReactNode;
-    className?: string;
+    replace?: boolean;
+    innerRef?: React.Ref<HTMLAnchorElement>;
   }
   export const Link: React.FC<LinkProps>;
+  export const BrowserRouter: React.FC<{children?: React.ReactNode}>;
+  export const Route: React.FC<{
+    path?: string;
+    exact?: boolean;
+    component?: React.ComponentType<any>;
+    render?: (props: any) => React.ReactNode;
+  }>;
 }
