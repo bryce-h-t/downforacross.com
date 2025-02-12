@@ -38,7 +38,7 @@ interface EmojiMatch {
 
 const Kbd = ({children}: KbdProps): JSX.Element => <kbd>{children}</kbd>;
 
-export default class EmojiPicker extends React.Component<EmojiPickerProps, EmojiPickerState> {
+export default class EmojiPicker extends Component<EmojiPickerProps, EmojiPickerState> {
   private emojiRefs: Record<string, React.RefObject<HTMLSpanElement>> = {};
   private listContainer: React.RefObject<HTMLDivElement>;
 

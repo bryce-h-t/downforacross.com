@@ -97,7 +97,7 @@ const isEmojis = (str: string): boolean => {
   return !res;
 };
 
-export default class Chat extends React.Component<ChatProps, ChatState> {
+export default class Chat extends Component<ChatProps, ChatState> {
   static defaultProps = {
     messages: [],
     isVisible: false,
@@ -105,7 +105,7 @@ export default class Chat extends React.Component<ChatProps, ChatState> {
   private chatBar: React.RefObject<ChatBar>;
   private usernameInput: React.RefObject<EditableSpan>;
   declare readonly state: ChatState;
-  };
+
   constructor(props: ChatProps) {
     super(props);
     this.state = {

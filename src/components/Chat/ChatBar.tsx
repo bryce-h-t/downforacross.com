@@ -15,7 +15,7 @@ interface ChatBarState {
 }
 
 const MAX_EMOJIS = 150;
-export default class ChatBar extends React.Component<ChatBarProps, ChatBarState> {
+export default class ChatBar extends Component<ChatBarProps, ChatState> {
   declare readonly state: ChatBarState;
   private input: React.RefObject<HTMLInputElement>;
   private emojiPicker: React.RefObject<EmojiPicker>;
