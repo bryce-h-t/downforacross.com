@@ -4,8 +4,10 @@ import * as emojiLib from '../../lib/emoji';
 
 interface ChatBarProps {
   mobile?: boolean;
+  placeHolder?: string;
   onSendMessage: (message: string) => void;
   onUnfocus: () => void;
+  ref?: React.RefObject<ChatBar>;
 }
 
 interface ChatBarState {

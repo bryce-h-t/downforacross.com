@@ -10,7 +10,9 @@
     "skipLibCheck": true,
     "strict": true,
     "types": ["react", "react-dom"],
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "jsxFactory": "React.createElement",
+    "jsxFragmentFactory": "React.Fragment"
   },
   "paths": {
     "@shared/*": [
