@@ -23,6 +23,4 @@ declare global {
 }
 
 // Add missing React types
-declare module 'react' {
-  export * from '@types/react';
-}
+// No need to re-export React types
