@@ -6,8 +6,8 @@ import {ChatBarProps, ChatBarState} from './types';
 const MAX_EMOJIS = 150;
 
 export default class ChatBar extends React.Component<ChatBarProps, ChatBarState> {
-  private input: React.RefObject<HTMLInputElement>;
-  private emojiPicker: React.RefObject<EmojiPicker>;
+  private input: React.RefObject<HTMLInputElement | null>;
+  private emojiPicker: React.RefObject<EmojiPicker | null>;
 
   constructor(props: ChatBarProps) {
     super(props);

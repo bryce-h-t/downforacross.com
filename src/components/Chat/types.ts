@@ -74,7 +74,7 @@ export interface ChatBarProps {
 
 export interface ChatBarState {
   message: string;
-  escapedEmoji: string | null;
+  escapedEmoji: string | undefined | null;
   enters: number;
 }
 
