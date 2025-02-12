@@ -19,6 +19,7 @@ export interface ChatProps {
   path?: string;
   gid?: string;
   game: {
+    pid?: string;
     info: {
       title: string;
       type?: string;
@@ -61,7 +62,7 @@ export interface ChatProps {
 }
 
 export interface ChatState {
-  username: string;
+  username: string | undefined;
 }
 
 export interface ChatBarProps {

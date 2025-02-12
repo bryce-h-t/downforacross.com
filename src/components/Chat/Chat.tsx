@@ -5,6 +5,7 @@ import Flex from 'react-flexview';
 import Linkify from 'react-linkify';
 import {Link} from 'react-router-dom';
 import {MdClose} from 'react-icons/md';
+import type {IconType} from 'react-icons';
 import Emoji from '../common/Emoji';
 import * as emojiLib from '../../lib/emoji';
 import nameGenerator, {isFromNameGenerator} from '../../lib/nameGenerator';
@@ -21,8 +22,8 @@ const isEmojis = (str: string): boolean => {
 };
 
 export default class Chat extends Component<ChatProps, ChatState> {
-  private chatBar: React.RefObject<ChatBar>;
-  private usernameInput: React.RefObject<EditableSpan>;
+  private chatBar: React.RefObject<ChatBar | null>;
+  private usernameInput: React.RefObject<EditableSpan | null>;
 
   constructor(props: ChatProps) {
     super(props);
@@ -157,7 +158,8 @@ export default class Chat extends Component<ChatProps, ChatState> {
   }
 
   renderGameButton(): React.ReactNode {
-    return <MdClose onClick={this.handleToggleChat} className="toolbar--game" />;
+    const CloseIcon = MdClose as IconType;
+    return <CloseIcon onClick={this.handleToggleChat} className="toolbar--game" />;
   }
 
   renderToolbar(): React.ReactNode {
@@ -189,7 +191,8 @@ export default class Chat extends Component<ChatProps, ChatState> {
 
   renderChatHeader(): React.ReactNode {
     if (this.props.header) return this.props.header;
-    const {info = {}, bid} = this.props;
+    const {bid} = this.props;
+    const info = this.props.game.info;
     const {title, description, author, type} = info;
     const desc = description?.startsWith('; ') ? description.substring(2) : description;
 
