@@ -24,12 +24,22 @@ declare global {
 
 // Add missing React types
 declare module 'react' {
-  export interface Component<P = {}, S = {}> extends React.Component<P, S> {}
+  export class Component<P = {}, S = {}> {
+    constructor(props: P);
+    readonly props: Readonly<P>;
+    state: Readonly<S>;
+    setState<K extends keyof S>(
+      state: ((prevState: Readonly<S>, props: Readonly<P>) => (Pick<S, K> | S | null)) | (Pick<S, K> | S | null),
+      callback?: () => void
+    ): void;
+    forceUpdate(callback?: () => void): void;
+    render(): ReactNode;
+  }
   export type ReactNode = React.ReactNode;
   export type RefObject<T> = React.RefObject<T>;
   export type KeyboardEvent<T = Element> = React.KeyboardEvent<T>;
   export type MouseEvent<T = Element> = React.MouseEvent<T>;
   export type ChangeEvent<T = Element> = React.ChangeEvent<T>;
   export type CSSProperties = React.CSSProperties;
-  export const createRef: typeof React.createRef;
+  export function createRef<T>(): RefObject<T>;
 }
