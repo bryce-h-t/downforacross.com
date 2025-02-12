@@ -21,3 +21,14 @@ declare global {
     }
   }
 }
+
+// Add missing React types
+declare module 'react' {
+  export type ReactNode = React.ReactNode;
+  export type RefObject<T> = React.RefObject<T>;
+  export type KeyboardEvent = React.KeyboardEvent;
+  export type MouseEvent = React.MouseEvent;
+  export type ChangeEvent = React.ChangeEvent;
+  export type Component = React.Component;
+  export type CSSProperties = React.CSSProperties;
+}
