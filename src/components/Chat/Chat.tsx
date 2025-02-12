@@ -1,4 +1,5 @@
-import * as React from 'react';
+import React from 'react';
+import type { ReactNode, RefObject, KeyboardEvent, ChangeEvent } from 'react';
 import _ from 'lodash';
 import Flex from 'react-flexview';
 import Linkify from 'react-linkify';
