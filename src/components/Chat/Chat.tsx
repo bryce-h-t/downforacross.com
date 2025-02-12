@@ -4,8 +4,7 @@ import _ from 'lodash';
 import Flex from 'react-flexview';
 import Linkify from 'react-linkify';
 import {Link} from 'react-router-dom';
-import {MdClose} from 'react-icons/md';
-import type {IconType} from 'react-icons';
+import {MdClose} from 'react-icons/md/index';
 
 import Emoji from '../common/Emoji';
 import * as emojiLib from '../../lib/emoji';

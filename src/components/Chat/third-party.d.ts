@@ -1,6 +1,5 @@
-import React from 'react';
-
 declare module 'react-flexview' {
+  import * as React from 'react';
   interface FlexViewProps {
     column?: boolean;
     vAlignContent?: string;
@@ -10,17 +9,26 @@ declare module 'react-flexview' {
     children?: React.ReactNode;
   }
   const FlexView: React.FC<FlexViewProps>;
-  export = FlexView;
+  export default FlexView;
 }
 
 declare module 'react-linkify' {
+  import * as React from 'react';
   interface LinkifyProps {
     children: React.ReactNode;
   }
   const Linkify: React.FC<LinkifyProps>;
-  export = Linkify;
+  export default Linkify;
 }
 
-declare module 'react-icons/md' {
-  export const MdClose: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+declare module 'react-icons/md/index' {
+  import * as React from 'react';
+  export interface IconBaseProps extends React.SVGAttributes<SVGElement> {
+    children?: React.ReactNode;
+    size?: string | number;
+    color?: string;
+    title?: string;
+  }
+  export type IconType = React.ComponentType<IconBaseProps>;
+  export const MdClose: IconType;
 }
