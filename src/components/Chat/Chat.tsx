@@ -159,8 +159,7 @@ export default class Chat extends Component<ChatProps, ChatState> {
   }
 
   renderGameButton(): React.ReactNode {
-    const CloseIcon = MdClose as IconType;
-    return <CloseIcon onClick={this.handleToggleChat} className="toolbar--game" />;
+    return <MdClose onClick={this.handleToggleChat} className="toolbar--game" />;
   }
 
   renderToolbar(): React.ReactNode {
