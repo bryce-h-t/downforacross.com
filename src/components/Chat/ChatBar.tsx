@@ -1,4 +1,5 @@
-import React from 'react';
+import * as React from 'react';
+import type { ReactNode, RefObject } from 'react';
 import EmojiPicker from './EmojiPicker';
 import * as emojiLib from '../../lib/emoji';
 
@@ -16,8 +17,9 @@ interface ChatBarState {
 
 const MAX_EMOJIS = 150;
 export default class ChatBar extends React.Component<ChatBarProps, ChatBarState> {
-  private input: React.RefObject<HTMLInputElement>;
-  private emojiPicker: React.RefObject<EmojiPicker>;
+  declare readonly state: ChatBarState;
+  private input: RefObject<HTMLInputElement>;
+  private emojiPicker: RefObject<EmojiPicker>;
   constructor(props: ChatBarProps) {
     super(props);
     this.state = {
