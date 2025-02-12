@@ -88,13 +88,15 @@ export default class EmojiPicker extends Component<EmojiPickerProps, EmojiPicker
     };
   }
 
-  scrollEmojiIntoView(emoji) {
+  scrollEmojiIntoView(emoji: string): void {
     // HACK: hardcoding container's padding here
     const padding = 5;
-    const span = this.emojiRefs[emoji].current;
+    const span = this.emojiRefs[emoji]?.current;
+    if (!span) return;
     const top = span.offsetTop;
     const bottom = top + span.offsetHeight;
     const container = this.listContainer.current;
+    if (!container) return;
     const containerHeight = container.getBoundingClientRect().height - 2 * padding;
     const scrollTop = container.scrollTop;
     const scrollBottom = container.scrollTop + containerHeight;
@@ -106,7 +108,7 @@ export default class EmojiPicker extends Component<EmojiPickerProps, EmojiPicker
     }
   }
 
-  selectEmoji(emoji) {
+  selectEmoji(emoji: string): void {
     this.setState({
       selectedEmoji: emoji,
     });
@@ -256,10 +258,10 @@ export default class EmojiPicker extends Component<EmojiPickerProps, EmojiPicker
     );
   }
 
-  renderEmoji(emoji) {
+  renderEmoji(emoji: string): ReactNode {
     const {selectedEmoji} = this.state;
     const isSelected = selectedEmoji === emoji;
-    const style = {
+    const style: React.CSSProperties = {
       backgroundColor: isSelected ? '#6AA9F4' : 'white',
       color: isSelected ? 'white' : 'inherit',
       cursor: 'pointer',
