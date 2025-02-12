@@ -32,7 +32,7 @@ export default class ChatBar extends React.Component<ChatBarProps, ChatBarState>
 
   handleKeyDown = (ev: React.KeyboardEvent): void => {
     if (this.emojiPicker.current) {
-      this.emojiPicker.current.handleKeyDown(ev);
+      this.emojiPicker.current.handleKeyDown((ev as unknown) as KeyboardEvent);
       return;
     }
 

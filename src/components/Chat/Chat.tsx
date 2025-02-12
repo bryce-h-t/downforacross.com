@@ -150,7 +150,8 @@ export default class Chat extends Component<ChatProps, ChatState> {
     const {users, teams} = this.props;
     if (isOpponent === undefined) {
       if (users[senderId]?.teamId && teams) {
-        return teams[users[senderId].teamId]?.color;
+        const teamId = users[senderId]?.teamId;
+        return teamId !== undefined ? teams[teamId]?.color : undefined;
       }
       return users[senderId]?.color;
     }
@@ -352,7 +353,7 @@ export default class Chat extends Component<ChatProps, ChatState> {
   renderClueRef(clueref: RegExpMatchArray): React.ReactNode {
     const defaultPattern = clueref[0];
 
-    let clueNumber;
+    let clueNumber: number;
     try {
       clueNumber = parseInt(clueref[1]);
     } catch (e) {
