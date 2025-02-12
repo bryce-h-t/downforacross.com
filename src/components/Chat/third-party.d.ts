@@ -1,6 +1,6 @@
 declare module 'react-flexview' {
   import * as React from 'react';
-  interface FlexViewProps {
+  interface FlexViewProps extends React.HTMLAttributes<HTMLDivElement> {
     column?: boolean;
     vAlignContent?: string;
     grow?: number;
@@ -10,6 +10,16 @@ declare module 'react-flexview' {
   }
   const FlexView: React.FC<FlexViewProps>;
   export default FlexView;
+}
+
+declare module '../common/Emoji' {
+  import * as React from 'react';
+  interface EmojiProps {
+    emoji: string;
+    big?: boolean;
+  }
+  const Emoji: React.FC<EmojiProps>;
+  export default Emoji;
 }
 
 declare module 'react-linkify' {

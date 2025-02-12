@@ -7,8 +7,8 @@ import {EmojiPickerProps, EmojiPickerState} from './types';
 const Kbd: React.FC<{children: React.ReactNode}> = ({children}) => <kbd>{children}</kbd>;
 
 export default class EmojiPicker extends React.Component<EmojiPickerProps, EmojiPickerState> {
-  private emojiRefs: Record<string, React.RefObject<HTMLSpanElement>>;
-  private listContainer: React.RefObject<HTMLDivElement>;
+  private emojiRefs: Record<string, React.RefObject<HTMLSpanElement | null>>;
+  private listContainer: React.RefObject<HTMLDivElement | null>;
 
   constructor(props: EmojiPickerProps) {
     super(props);
@@ -246,7 +246,7 @@ export default class EmojiPicker extends React.Component<EmojiPickerProps, Emoji
         data-emoji={emoji}
         onMouseMove={this.handleMouseEnterSpan}
       >
-        <Emoji emoji={emoji} />
+        <Emoji emoji={emoji} big={false} />
         <span style={textStyle}>{`:${emoji}:`}</span>
       </span>
     );
