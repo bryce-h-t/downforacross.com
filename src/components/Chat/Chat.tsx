@@ -1,5 +1,5 @@
 import './css/index.css';
-import React, {Component} from 'react';
+import React, {Component, RefObject} from 'react';
 import _ from 'lodash';
 import Flex from 'react-flexview';
 import Linkify from 'react-linkify';
@@ -11,23 +11,96 @@ import nameGenerator, {isFromNameGenerator} from '../../lib/nameGenerator';
 import ChatBar from './ChatBar';
 import EditableSpan from '../common/EditableSpan';
 import MobileKeyboard from '../Player/MobileKeyboard';
-import ColorPicker from './ColorPicker.tsx';
+import ColorPicker from './ColorPicker';
 import {formatMilliseconds} from '../Toolbar/Clock';
 
-const isEmojis = (str) => {
+interface User {
+  displayName: string;
+  color?: string;
+  teamId?: string;
+}
+
+interface Team {
+  color: string;
+}
+
+interface Message {
+  text: string;
+  senderId: string;
+  isOpponent?: boolean;
+  timestamp: number;
+}
+
+interface GameInfo {
+  title: string;
+  description?: string;
+  author?: string;
+  type?: string;
+}
+
+interface Game {
+  info: GameInfo;
+  pid?: string;
+  isFencing?: boolean;
+  fencingUsers?: any[];
+  solved?: boolean;
+  clock: {
+    totalTime: number;
+  };
+  clues: {
+    across: string[];
+    down: string[];
+  };
+}
+
+interface ChatProps {
+  id: string;
+  initialUsername?: string;
+  bid?: string;
+  users: Record<string, User>;
+  teams?: Record<string, Team>;
+  myColor?: string;
+  mobile?: boolean;
+  hideChatBar?: boolean;
+  header?: React.ReactNode;
+  subheader?: React.ReactNode;
+  data: {
+    messages?: Message[];
+  };
+  opponentData?: {
+    messages?: Message[];
+  };
+  game: Game;
+  path: string;
+  gid: string;
+  isFencing?: boolean;
+  onChat: (username: string, id: string, message: string) => void;
+  onUpdateDisplayName: (id: string, username: string) => void;
+  onUpdateColor: (id: string, color: string) => void;
+  onUnfocus?: () => void;
+  onToggleChat: () => void;
+  onSelectClue: (direction: 'across' | 'down', number: number) => void;
+}
+
+interface ChatState {
+  username: string;
+}
+
+const isEmojis = (str: string): boolean => {
   const res = str.match(/[A-Za-z,.0-9!-]/g);
   return !res;
 };
 
-export default class Chat extends Component {
-  constructor() {
-    super();
-    // We'll set the username state when we mount the component.
+export default class Chat extends Component<ChatProps, ChatState> {
+  private chatBar: RefObject<ChatBar>;
+  private usernameInput: RefObject<EditableSpan>;
+  constructor(props: ChatProps) {
+    super(props);
     this.state = {
       username: '',
     };
-    this.chatBar = React.createRef();
-    this.usernameInput = React.createRef();
+    this.chatBar = React.createRef<ChatBar>();
+    this.usernameInput = React.createRef<EditableSpan>();
   }
 
   componentDidMount() {
@@ -47,14 +120,14 @@ export default class Chat extends Component {
     return `username_${window.location.href}`;
   }
 
-  handleSendMessage = (message) => {
+  handleSendMessage = (message: string): void => {
     const {id} = this.props;
     const username = this.props.users[id].displayName;
     this.props.onChat(username, id, message);
     localStorage.setItem(this.usernameKey, username);
   };
 
-  handleUpdateDisplayName = (username) => {
+  handleUpdateDisplayName = (username: string): void => {
     if (!this.usernameInput?.current?.focused) {
       username = username || nameGenerator();
     }
@@ -72,8 +145,8 @@ export default class Chat extends Component {
     }
   };
 
-  handleUpdateColor = (color) => {
-    color = color || this.props.color;
+  handleUpdateColor = (color?: string): void => {
+    color = color || this.props.myColor;
     const {id} = this.props;
     this.props.onUpdateColor(id, color);
   };
@@ -129,19 +202,20 @@ export default class Chat extends Component {
     }
   };
 
-  mergeMessages(data, opponentData) {
+  mergeMessages(data: { messages?: Message[] }, opponentData?: { messages?: Message[] }): Message[] {
     if (!opponentData) {
       return data.messages || [];
     }
 
-    const getMessages = (data, isOpponent) => _.map(data.messages, (message) => ({...message, isOpponent}));
+    const getMessages = (data: { messages?: Message[] }, isOpponent: boolean): Message[] => 
+      _.map(data.messages, (message) => ({...message, isOpponent}));
 
     const messages = _.concat(getMessages(data, false), getMessages(opponentData, true));
 
     return _.sortBy(messages, 'timestamp');
   }
 
-  getMessageColor(senderId, isOpponent) {
+  getMessageColor(senderId: string, isOpponent?: boolean): string | undefined {
     const {users, teams} = this.props;
     if (isOpponent === undefined) {
       if (users[senderId]?.teamId) {
@@ -231,7 +305,7 @@ export default class Chat extends Component {
     );
   }
 
-  renderUserPresent(id, displayName, color) {
+  renderUserPresent(id: string, displayName: string, color?: string): React.ReactNode {
     const style = color && {
       color,
     };
@@ -243,7 +317,7 @@ export default class Chat extends Component {
     );
   }
 
-  renderUsersPresent(users) {
+  renderUsersPresent(users: Record<string, User>): React.ReactNode {
     return this.props.hideChatBar ? null : (
       <div className="chat--users--present">
         {Object.keys(users).map((id) => this.renderUserPresent(id, users[id].displayName, users[id].color))}
@@ -282,9 +356,14 @@ export default class Chat extends Component {
     );
   }
 
-  renderMessageText(text) {
+  interface MessageToken {
+    type: 'emoji' | 'clueref' | 'text';
+    data: string | RegExpMatchArray;
+  }
+
+  renderMessageText(text: string): React.ReactNode {
     const words = text.split(' ');
-    const tokens = [];
+    const tokens: MessageToken[] = [];
     words.forEach((word) => {
       if (word.length === 0) return;
       if (word.startsWith(':') && word.endsWith(':')) {
@@ -341,10 +420,10 @@ export default class Chat extends Component {
   }
 
   // clueref is in the format [pattern, number, a(cross) | d(own)]
-  renderClueRef(clueref) {
+  renderClueRef(clueref: RegExpMatchArray): React.ReactNode {
     const defaultPattern = clueref[0];
 
-    let clueNumber;
+    let clueNumber: number;
     try {
       clueNumber = parseInt(clueref[1]);
     } catch (e) {
@@ -353,11 +432,11 @@ export default class Chat extends Component {
     }
 
     const directionFirstChar = clueref[2][0];
-    const isAcross = directionFirstChar == 'a' || directionFirstChar == 'A';
+    const isAcross = directionFirstChar === 'a' || directionFirstChar === 'A';
     const clues = isAcross ? this.props.game.clues['across'] : this.props.game.clues['down'];
 
     if (clueNumber >= 0 && clueNumber < clues.length && clues[clueNumber] !== undefined) {
-      const handleClick = () => {
+      const handleClick = (): void => {
         const directionStr = isAcross ? 'across' : 'down';
         this.props.onSelectClue(directionStr, clueNumber);
       };
@@ -368,7 +447,7 @@ export default class Chat extends Component {
     }
   }
 
-  renderMessage(message) {
+  renderMessage(message: Message): React.ReactNode {
     const {text, senderId: id, isOpponent, timestamp} = message;
     const big = text.length <= 10 && isEmojis(text);
     const color = this.getMessageColor(id, isOpponent);
