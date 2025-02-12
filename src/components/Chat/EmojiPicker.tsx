@@ -1,12 +1,12 @@
 /* eslint react/no-unescaped-entities: "warn" */
 import * as React from 'react';
-import type { ComponentType, ReactElement } from 'react';
+import type { ReactNode } from 'react';
 import Flex from 'react-flexview';
 import _ from 'lodash';
 import Emoji from '../common/Emoji';
 
 interface KbdProps {
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 interface EmojiPickerProps {

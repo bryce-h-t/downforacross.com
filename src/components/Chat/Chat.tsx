@@ -1,5 +1,5 @@
 import * as React from 'react';
-import type { ComponentType, ReactElement } from 'react';
+import type { ReactNode } from 'react';
 import _ from 'lodash';
 import Flex from 'react-flexview';
 import Linkify from 'react-linkify';
@@ -64,8 +64,8 @@ interface ChatProps {
   myColor?: string;
   mobile?: boolean;
   hideChatBar?: boolean;
-  header?: React.ReactNode;
-  subheader?: React.ReactNode;
+  header?: ReactNode;
+  subheader?: ReactNode;
   data: {
     messages?: Message[];
   };

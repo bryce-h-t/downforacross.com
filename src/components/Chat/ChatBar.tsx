@@ -1,5 +1,5 @@
 import * as React from 'react';
-import type { ComponentType, ReactElement } from 'react';
+import type { ReactNode } from 'react';
 import EmojiPicker from './EmojiPicker';
 import * as emojiLib from '../../lib/emoji';
 
