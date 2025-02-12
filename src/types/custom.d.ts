@@ -11,4 +11,10 @@ declare module 'react' {
     grow?: number;
     shrink?: number;
   }
+  export interface JSX {
+    Element: any;
+    IntrinsicElements: {
+      [key: string]: any;
+    };
+  }
 }
