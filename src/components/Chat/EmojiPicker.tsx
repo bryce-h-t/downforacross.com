@@ -123,14 +123,15 @@ export default class EmojiPicker extends React.Component<EmojiPickerProps, Emoji
   }
 
   handleMouseDown = (e: React.MouseEvent): void => {
-    if (this.state.selectedEmoji) {
-      this.props.onConfirm(this.state.selectedEmoji);
+    const {selectedEmoji} = this.state;
+    if (selectedEmoji) {
+      this.props.onConfirm(selectedEmoji);
     }
     e.preventDefault();
     e.stopPropagation();
   };
 
-  handleMouseEnterSpan = (e: MouseEvent<HTMLSpanElement>): void => {
+  handleMouseEnterSpan = (e: React.MouseEvent<HTMLSpanElement>): void => {
     const emoji = e.currentTarget.getAttribute('data-emoji');
     if (emoji) {
       this.selectEmoji(emoji);
@@ -157,14 +158,17 @@ export default class EmojiPicker extends React.Component<EmojiPickerProps, Emoji
     };
 
     // sx, sy should be -1, 0, or 1
-    const move = (sx, sy) => () => {
-      const {cx, cy} = this.getDomPosition(selectedEmoji);
+    const move = (sx: number, sy: number) => () => {
+      const pos = this.getDomPosition(selectedEmoji);
+      if (!pos) return;
+      const {cx, cy} = pos;
       // beware, this code is a bit hacky :)
       const bestMatch = _.orderBy(
         matches
           .filter((emoji) => emoji !== selectedEmoji)
           .map((emoji) => {
             const p = this.getDomPosition(emoji);
+            if (!p) return {emoji, pagey: 0, dy: 0, pagex: 0, dx: 0};
             let dx = p.cx - cx;
             let dy = p.cy - cy;
             let pagex = 0;
@@ -199,7 +203,10 @@ export default class EmojiPicker extends React.Component<EmojiPickerProps, Emoji
     };
 
     const confirm = () => {
-      this.props.onConfirm(this.state.selectedEmoji);
+      const {selectedEmoji} = this.state;
+      if (selectedEmoji) {
+        this.props.onConfirm(selectedEmoji);
+      }
     };
 
     const actions = {
@@ -211,8 +218,9 @@ export default class EmojiPicker extends React.Component<EmojiPickerProps, Emoji
       Enter: confirm,
     };
 
-    if (actions[key]) {
-      actions[key](shiftKey);
+    const action = actions[key as keyof typeof actions];
+    if (action) {
+      action();
       e.preventDefault();
       e.stopPropagation();
     }
@@ -233,30 +241,18 @@ export default class EmojiPicker extends React.Component<EmojiPickerProps, Emoji
     return (
       <Flex style={headerStyle}>
         <span>
-          <span style={patternStyle}>
-            "
-            {`:${pattern}`}
-            "
-          </span>
+          <span style={patternStyle}>"{`:${pattern}`}"</span>
         </span>
         <span>
           <span style={hintStyle}>
-            <Kbd>tab</Kbd>
-            {' '}
-            or
-            <Kbd>↑↓</Kbd>
-            {' '}
-            to navigate
+            <Kbd>tab</Kbd> or
+            <Kbd>↑↓</Kbd> to navigate
           </span>
           <span style={hintStyle}>
-            <Kbd>↩</Kbd>
-            {' '}
-            to select
+            <Kbd>↩</Kbd> to select
           </span>
           <span style={hintStyle}>
-            <Kbd>esc</Kbd>
-            {' '}
-            to dismiss
+            <Kbd>esc</Kbd> to dismiss
           </span>
         </span>
       </Flex>
@@ -291,7 +287,7 @@ export default class EmojiPicker extends React.Component<EmojiPickerProps, Emoji
         data-emoji={emoji}
         onMouseMove={this.handleMouseEnterSpan}
       >
-        <Emoji emoji={emoji} />
+        <Emoji emoji={emoji} big={false} />
         <span style={textStyle}>{`:${emoji}:`}</span>
       </span>
     );

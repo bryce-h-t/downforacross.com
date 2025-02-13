@@ -1,4 +1,72 @@
-declare module 'react-flexview';
+declare module 'react' {
+  interface HTMLAttributes<T> {
+    vAlignContent?: string;
+    grow?: number;
+    shrink?: number;
+    column?: boolean;
+  }
+}
+
+declare module 'react' {
+  interface HTMLAttributes<T> {
+    vAlignContent?: string;
+    grow?: number;
+    shrink?: number;
+    column?: boolean;
+  }
+}
+
+declare module 'react-flexview' {
+  import * as React from 'react';
+  const Flex: React.ComponentClass<{
+    column?: boolean;
+    vAlignContent?: string;
+    grow?: number;
+    shrink?: number;
+    className?: string;
+    children?: React.ReactNode;
+    style?: React.CSSProperties;
+  }>;
+  export default Flex;
+}
+
+declare module '../common/EditableSpan' {
+  import * as React from 'react';
+  const EditableSpan: React.ComponentClass<{
+    ref?: React.RefObject<any>;
+    className?: string;
+    mobile?: boolean;
+    value: string;
+    onChange: (value: string) => void;
+    onBlur?: () => void;
+    onUnfocus?: () => void;
+    style?: React.CSSProperties;
+  }>;
+  export default EditableSpan;
+}
+
+declare module './ChatBar' {
+  import * as React from 'react';
+  const ChatBar: React.ComponentClass<{
+    ref?: React.RefObject<any>;
+    mobile?: boolean;
+    placeHolder?: string;
+    onSendMessage: (message: string) => void;
+    onUnfocus: () => void;
+  }> & {
+    focus(): void;
+  };
+  export default ChatBar;
+}
+
+declare module '../Player/MobileKeyboard' {
+  import * as React from 'react';
+  const MobileKeyboard: React.ComponentClass<{
+    layout: string;
+  }>;
+  export default MobileKeyboard;
+}
+
 declare module 'react-linkify';
 declare module '*.css';
 declare module 'lodash';
@@ -10,19 +78,9 @@ declare module 'react' {
     vAlignContent?: string;
     grow?: number;
     shrink?: number;
+    column?: boolean;
   }
-}
 
-declare global {
-  namespace JSX {
-    interface Element {}
-    interface IntrinsicElements {
-      [elem: string]: any;
-    }
-  }
-}
-
-declare module 'react' {
   export class Component<P = {}, S = {}> {
     constructor(props: P);
     props: Readonly<P>;
@@ -32,7 +90,7 @@ declare module 'react' {
       callback?: () => void
     ): void;
     forceUpdate(callback?: () => void): void;
-    render(): React.ReactNode;
+    render(): ReactNode;
   }
 
   export type ReactNode = any;
@@ -42,6 +100,15 @@ declare module 'react' {
   export type ChangeEvent<T = Element> = any;
   export type CSSProperties = any;
   export function createRef<T>(): RefObject<T>;
-  export const createElement: any;
   export const Fragment: any;
+  export const createElement: any;
+}
+
+declare global {
+  namespace JSX {
+    interface Element {}
+    interface IntrinsicElements {
+      [elem: string]: any;
+    }
+  }
 }

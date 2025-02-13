@@ -3,22 +3,28 @@
   "compilerOptions": {
     "module": "esnext",
     "noFallthroughCasesInSwitch": true,
-    "jsx": "react-jsx",
+    "jsx": "react",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "skipLibCheck": true,
     "strict": true,
     "moduleResolution": "node",
     "target": "es6",
-    "types": ["react", "react-dom", "node"],
-    "typeRoots": ["./node_modules/@types", "./src/types"],
-    "baseUrl": ".",
-    "paths": {
-      "*": ["node_modules/*"]
-    },
-    "jsxFactory": "React.createElement",
-    "jsxFragmentFactory": "React.Fragment"
+    "types": [
+      "react",
+      "react-dom",
+      "node"
+    ],
+    "typeRoots": [
+      "./node_modules/@types",
+      "./src/types"
+    ],
+    "baseUrl": "."
   },
   "paths": {
     "@shared/*": [

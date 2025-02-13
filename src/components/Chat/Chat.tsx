@@ -1,10 +1,9 @@
-import * as React from 'react';
+import React, {ReactNode, RefObject, Fragment, CSSProperties} from 'react';
 import _ from 'lodash';
 import Flex from 'react-flexview';
 import Linkify from 'react-linkify';
 import {Link} from 'react-router-dom';
 import {MdClose} from 'react-icons/md';
-
 import './css/index.css';
 import Emoji from '../common/Emoji';
 import * as emojiLib from '../../lib/emoji';
@@ -87,6 +86,79 @@ interface ChatState {
   username: string;
 }
 
+interface User {
+  displayName: string;
+  color?: string;
+  teamId?: string;
+}
+
+interface Team {
+  color: string;
+}
+
+interface Message {
+  text: string;
+  senderId: string;
+  isOpponent?: boolean;
+  timestamp: number;
+}
+
+interface GameInfo {
+  title: string;
+  description?: string;
+  author?: string;
+  type?: string;
+}
+
+interface Game {
+  info: GameInfo;
+  pid?: string;
+  isFencing?: boolean;
+  fencingUsers?: any[];
+  solved?: boolean;
+  clock: {
+    totalTime: number;
+  };
+  clues: {
+    across: string[];
+    down: string[];
+  };
+}
+
+interface ChatProps {
+  id: string;
+  initialUsername?: string;
+  bid?: string;
+  users: Record<string, User>;
+  teams?: Record<string, Team>;
+  myColor?: string;
+  mobile?: boolean;
+  hideChatBar?: boolean;
+  header?: ReactNode;
+  subheader?: ReactNode;
+  info?: GameInfo;
+  data: {
+    messages?: Message[];
+  };
+  opponentData?: {
+    messages?: Message[];
+  };
+  game: Game;
+  path: string;
+  gid: string;
+  isFencing?: boolean;
+  onChat: (username: string, id: string, message: string) => void;
+  onUpdateDisplayName: (id: string, username: string) => void;
+  onUpdateColor: (id: string, color: string) => void;
+  onUnfocus?: () => void;
+  onToggleChat: () => void;
+  onSelectClue: (direction: 'across' | 'down', number: number) => void;
+}
+
+interface ChatState {
+  username: string;
+}
+
 interface MessageToken {
   type: 'emoji' | 'clueref' | 'text';
   data: string | RegExpMatchArray;
@@ -104,7 +176,7 @@ export default class Chat extends React.Component<ChatProps, ChatState> {
   };
   private chatBar: RefObject<ChatBar>;
   private usernameInput: RefObject<EditableSpan>;
-  declare readonly state: ChatState;
+  readonly state!: ChatState;
 
   constructor(props: ChatProps) {
     super(props);
@@ -218,12 +290,12 @@ export default class Chat extends React.Component<ChatProps, ChatState> {
     }
   };
 
-  mergeMessages(data: { messages?: Message[] }, opponentData?: { messages?: Message[] }): Message[] {
+  mergeMessages(data: {messages?: Message[]}, opponentData?: {messages?: Message[]}): Message[] {
     if (!opponentData) {
       return data.messages || [];
     }
 
-    const getMessages = (data: { messages?: Message[] }, isOpponent: boolean): Message[] => 
+    const getMessages = (data: {messages?: Message[]}, isOpponent: boolean): Message[] =>
       _.map(data.messages || [], (message: Message) => ({...message, isOpponent}));
 
     const messages = _.concat(getMessages(data, false), getMessages(opponentData, true));
@@ -235,7 +307,8 @@ export default class Chat extends React.Component<ChatProps, ChatState> {
     const {users, teams} = this.props;
     if (isOpponent === undefined) {
       if (users[senderId]?.teamId) {
-        return teams?.[users[senderId].teamId]?.color;
+        const teamId = users[senderId]?.teamId;
+        return teamId ? teams?.[teamId]?.color : undefined;
       }
       return users[senderId]?.color;
     }
@@ -276,7 +349,8 @@ export default class Chat extends React.Component<ChatProps, ChatState> {
 
   renderChatHeader() {
     if (this.props.header) return this.props.header;
-    const {info = {}, bid} = this.props;
+    const {info, bid} = this.props;
+    if (!info) return null;
     const {title, description, author, type} = info;
     const desc = description?.startsWith('; ') ? description.substring(2) : description;
 
@@ -326,7 +400,7 @@ export default class Chat extends React.Component<ChatProps, ChatState> {
       color,
     };
     return (
-      <span key={id} style={style}>
+      <span key={id} style={style as CSSProperties}>
         <span className="dot">{'\u25CF'}</span>
         {displayName}{' '}
       </span>
@@ -366,7 +440,7 @@ export default class Chat extends React.Component<ChatProps, ChatState> {
       color,
     };
     return (
-      <span className="chat--message--sender" style={style}>
+      <span className="chat--message--sender" style={style as CSSProperties}>
         {name}:
       </span>
     );
@@ -411,20 +485,20 @@ export default class Chat extends React.Component<ChatProps, ChatState> {
       }
     });
 
-    const bigEmoji = tokens.length <= 3 && _.every(tokens, (token) => token.type === 'emoji');
+    const bigEmoji = tokens.length <= 3 && _.every(tokens, (token: MessageToken) => token.type === 'emoji');
     return (
       <span className="chat--message--text">
         {tokens.map((token, i) => (
-          <React.Fragment key={i}>
+          <Fragment key={i}>
             {token.type === 'emoji' ? (
               <Emoji emoji={token.data} big={bigEmoji} />
             ) : token.type === 'clueref' ? (
-              this.renderClueRef(token.data)
+              this.renderClueRef(token.data as RegExpMatchArray)
             ) : (
               token.data
             )}
             {token.type !== 'emoji' && ' '}
-          </React.Fragment>
+          </Fragment>
         ))}
       </span>
     );
