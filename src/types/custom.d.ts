@@ -5,13 +5,6 @@ declare module 'lodash';
 declare module 'react-icons/md';
 declare module 'react-router-dom';
 
-declare module 'react-flexview';
-declare module 'react-linkify';
-declare module '*.css';
-declare module 'lodash';
-declare module 'react-icons/md';
-declare module 'react-router-dom';
-
 declare module 'react' {
   interface HTMLAttributes<T> {
     vAlignContent?: string;
@@ -29,9 +22,9 @@ declare global {
   }
 }
 
-// Add React type augmentations
 declare module 'react' {
-  interface Component<P = {}, S = {}> {
+  export class Component<P = {}, S = {}> {
+    constructor(props: P);
     props: Readonly<P>;
     state: Readonly<S>;
     setState<K extends keyof S>(
@@ -39,6 +32,13 @@ declare module 'react' {
       callback?: () => void
     ): void;
     forceUpdate(callback?: () => void): void;
-    render(): React.ReactNode;
+    render(): ReactNode;
   }
+  export type ReactNode = React.ReactNode;
+  export type RefObject<T> = { current: T | null };
+  export type KeyboardEvent<T = Element> = React.KeyboardEvent<T>;
+  export type MouseEvent<T = Element> = React.MouseEvent<T>;
+  export type ChangeEvent<T = Element> = React.ChangeEvent<T>;
+  export type CSSProperties = React.CSSProperties;
+  export function createRef<T>(): RefObject<T>;
 }
