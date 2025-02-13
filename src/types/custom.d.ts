@@ -32,13 +32,16 @@ declare module 'react' {
       callback?: () => void
     ): void;
     forceUpdate(callback?: () => void): void;
-    render(): ReactNode;
+    render(): React.ReactNode;
   }
-  export type ReactNode = React.ReactNode;
+
+  export type ReactNode = any;
   export type RefObject<T> = { current: T | null };
-  export type KeyboardEvent<T = Element> = React.KeyboardEvent<T>;
-  export type MouseEvent<T = Element> = React.MouseEvent<T>;
-  export type ChangeEvent<T = Element> = React.ChangeEvent<T>;
-  export type CSSProperties = React.CSSProperties;
+  export type KeyboardEvent<T = Element> = any;
+  export type MouseEvent<T = Element> = any;
+  export type ChangeEvent<T = Element> = any;
+  export type CSSProperties = any;
   export function createRef<T>(): RefObject<T>;
+  export const createElement: any;
+  export const Fragment: any;
 }
